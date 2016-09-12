@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC "-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+                                         "http://hibernate.sourceforge.net/hibernate-configuration-3.0.dtd">
+<hibernate-configuration>
+ <session-factory name="hibernateSessionFactory">
+  <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+  <property name="hibernate.connection.password">'asd'</property>
+  <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/job_portal</property>
+  <property name="hibernate.connection.username">root</property>
+  <!-- <property name="hibernate.connection.password">12345</property>
+  <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/service_job_portal</property>
+  <property name="hibernate.connection.username">service_user</property> -->
+  <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
+  <property name="hibernate.show_sql">true</property>
+  <property name="hibernate.format_sql">true</property>
+  <!-- <property name="testOnReturn">true</property>
+  <property name="testOnBorrow">true</property>
+  <property name="testWhileIdle">true</property>
+  <property name="validationQuery">SELECT 1</property> -->
+<!--   <property name="hibernate.hbm2ddl.auto">create</property> -->
+  <mapping class="com.rns.web.jobz.service.dao.domain.Candidates"/>
+  <mapping class="com.rns.web.jobz.service.dao.domain.Skills"/>
+  <mapping class="com.rns.web.jobz.service.dao.domain.Education"/>
+  <mapping class="com.rns.web.jobz.service.dao.domain.JobPost"/>
+  <mapping class="com.rns.web.jobz.service.dao.domain.CandidateApplication"/>
+ </session-factory>
+</hibernate-configuration>
