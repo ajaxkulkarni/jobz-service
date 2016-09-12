@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -25,6 +26,7 @@ import com.rns.web.jobz.service.dao.impl.CandidateDaoImpl;
 import com.rns.web.jobz.service.util.BTDConverter;
 import com.rns.web.jobz.service.util.DTBConverter;
 import com.rns.web.jobz.service.util.JobzConstants;
+import com.rns.web.jobz.service.util.LoggingUtil;
 
 public class CandidateBoImpl implements CandidateBo, JobzConstants {
 
@@ -37,21 +39,38 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			return ERROR_INCOMPLETE_DETAILS;
 		}
 		String result = RESPONSE_OK;
-		Session session = this.sessionFactory.openSession();
-		CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
-		Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
-		if (registeredCandidate == null) {
-			Candidates candidates = BTDConverter.getCandidates(candidate);
-			Transaction tx = session.beginTransaction();
-			candidates.setEducation(checkForAvailableEducation(session, BTDConverter.getEducations(candidate.getEducations())));
-			candidates.setSkills(checkForAvailableSkills(session, BTDConverter.getSkills(candidate.getJobSkills())));
-			candidateDaoImpl.addCandidate(candidates, session);
-			tx.commit();
-		} else {
-			result = ERROR_EMAIL_EXISTS;
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
+			if (registeredCandidate == null) {
+				Candidates candidates = BTDConverter.getCandidates(candidate);
+				Transaction tx = session.beginTransaction();
+				candidates.setEducation(checkForAvailableEducation(session, BTDConverter.getEducations(candidate.getEducations())));
+				candidates.setSkills(checkForAvailableSkills(session, BTDConverter.getSkills(candidate.getJobSkills())));
+				candidateDaoImpl.addCandidate(candidates, session);
+				tx.commit();
+			} else {
+				result = ERROR_EMAIL_EXISTS;
+			}
+			
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+			result = e.getMessage();
+		} finally {
+			closeSession(session);
+		}
+		
+		return result;
+	}
+
+	private void closeSession(Session session) {
+		if(session == null || !session.isOpen())  {
+			return;
 		}
 		session.close();
-		return result;
+		System.out.println("Session closed!");
 	}
 
 	private Set<Education> checkForAvailableEducation(Session session, Set<Education> education2) {
@@ -96,17 +115,25 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			return ERROR_INCOMPLETE_DETAILS;
 		}
 		String result = RESPONSE_OK;
-		Session session = this.sessionFactory.openSession();
-		Transaction tx = session.beginTransaction();
-		CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
-		Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
-		if (registeredCandidate != null) {
-			BTDConverter.setCandidates(candidate, registeredCandidate);
-			registeredCandidate.setEducation(checkForAvailableEducation(session, BTDConverter.getEducations(candidate.getEducations())));
-			registeredCandidate.setSkills(checkForAvailableSkills(session, BTDConverter.getSkills(candidate.getJobSkills())));
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			Transaction tx = session.beginTransaction();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
+			if (registeredCandidate != null) {
+				BTDConverter.setCandidates(candidate, registeredCandidate);
+				registeredCandidate.setEducation(checkForAvailableEducation(session, BTDConverter.getEducations(candidate.getEducations())));
+				registeredCandidate.setSkills(checkForAvailableSkills(session, BTDConverter.getSkills(candidate.getJobSkills())));
+			}
+			tx.commit();
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+			result = e.getMessage();
+		} finally {
+			closeSession(session);
 		}
-		tx.commit();
-		session.close();
+		
 		return result;
 	}
 
@@ -115,18 +142,24 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		if (candidate == null || StringUtils.isEmpty(candidate.getEmail())) {
 			return null;
 		}
-		/*String result = RESPONSE_OK;*/
-		Session session = this.sessionFactory.openSession();
-		CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
-		Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
-		if(registeredCandidate == null) {
-			return null;
+		Candidate loginCandidate = null;
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
+			if(registeredCandidate == null) {
+				return null;
+			}
+			else if(!StringUtils.equals(candidate.getPassword(), registeredCandidate.getPassword())) {
+				return null;
+			}
+			loginCandidate = DTBConverter.getCandidateBasic(registeredCandidate);
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+		} finally {
+			closeSession(session);
 		}
-		else if(!StringUtils.equals(candidate.getPassword(), registeredCandidate.getPassword())) {
-			return null;
-		}
-		Candidate loginCandidate = DTBConverter.getCandidateBasic(registeredCandidate);
-		session.close();
 		return loginCandidate;
 	}
 
@@ -136,19 +169,26 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			return ERROR_INCOMPLETE_JOB_DETAILS;
 		}
 		String result = RESPONSE_OK;
-		Session session = this.sessionFactory.openSession();
-		CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
-		JobPost post = BTDConverter.getJobPost(application);
-		Candidates candidateByEmail = candidateDaoImpl.getCandidateByEmail(application.getPostedBy().getEmail(), session);
-		if (post != null && candidateByEmail != null) {
-			post.setPostedBy(candidateByEmail);
-			post.setEducation(checkForAvailableEducation(session, BTDConverter.getEducations(application.getEducationRequired())));
-			post.setSkills(checkForAvailableSkills(session, BTDConverter.getSkills(application.getSkillsRequired())));
-			Transaction tx = session.beginTransaction();
-			session.persist(post);
-			tx.commit();
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			JobPost post = BTDConverter.getJobPost(application);
+			Candidates candidateByEmail = candidateDaoImpl.getCandidateByEmail(application.getPostedBy().getEmail(), session);
+			if (post != null && candidateByEmail != null) {
+				post.setPostedBy(candidateByEmail);
+				post.setEducation(checkForAvailableEducation(session, BTDConverter.getEducations(application.getEducationRequired())));
+				post.setSkills(checkForAvailableSkills(session, BTDConverter.getSkills(application.getSkillsRequired())));
+				Transaction tx = session.beginTransaction();
+				session.persist(post);
+				tx.commit();
+			}
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+			result = e.getMessage();
+		} finally {
+			closeSession(session);
 		}
-		session.close();
 		return result;
 	}
 
@@ -158,32 +198,39 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			return ERROR_INCOMPLETE_JOB_DETAILS;
 		}
 		String result = RESPONSE_OK;
-		Session session = this.sessionFactory.openSession();
-		CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
-		JobPost post = (JobPost) session.get(JobPost.class, application.getId());
-		Candidates candidateByEmail = candidateDaoImpl.getCandidateByEmail(application.getCurrentCandidate().getEmail(), session);
-		if (post != null) {
-			CandidateApplication candidateApplication = candidateDaoImpl.getApplication(application.getId(), application.getCurrentCandidate().getEmail(), session);
-			if(candidateApplication == null) {
-				candidateApplication = new CandidateApplication();
-				candidateApplication.setJobPost(post);
-			}
-			candidateApplication.setAppliedDate(new Date());
-			if (candidateByEmail != null) {
-				candidateApplication.setCandidates(candidateByEmail);
-				if(StringUtils.isNotEmpty(application.getInterestShownBySeeker())) {
-					candidateApplication.setInterestShownBySeeker(application.getInterestShownBySeeker());
+		Session session = null;
+		try {
+			session= this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			JobPost post = (JobPost) session.get(JobPost.class, application.getId());
+			Candidates candidateByEmail = candidateDaoImpl.getCandidateByEmail(application.getCurrentCandidate().getEmail(), session);
+			if (post != null) {
+				CandidateApplication candidateApplication = candidateDaoImpl.getApplication(application.getId(), application.getCurrentCandidate().getEmail(), session);
+				if(candidateApplication == null) {
+					candidateApplication = new CandidateApplication();
+					candidateApplication.setJobPost(post);
 				}
+				candidateApplication.setAppliedDate(new Date());
+				if (candidateByEmail != null) {
+					candidateApplication.setCandidates(candidateByEmail);
+					if(StringUtils.isNotEmpty(application.getInterestShownBySeeker())) {
+						candidateApplication.setInterestShownBySeeker(application.getInterestShownBySeeker());
+					}
+				}
+				if(StringUtils.isNotEmpty(application.getInterestShownByPoster())) {
+					candidateApplication.setInterestShownByPoster(application.getInterestShownByPoster());
+				}
+				
+				Transaction tx = session.beginTransaction();
+				session.persist(candidateApplication);
+				tx.commit();
 			}
-			if(StringUtils.isNotEmpty(application.getInterestShownByPoster())) {
-				candidateApplication.setInterestShownByPoster(application.getInterestShownByPoster());
-			}
-			
-			Transaction tx = session.beginTransaction();
-			session.persist(candidateApplication);
-			tx.commit();
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+			result = e.getMessage();
+		} finally {
+			closeSession(session);
 		}
-		session.close();
 		return result;
 	}
 	
@@ -193,13 +240,19 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			return null;
 		}
 		Candidate currentCandidate = new Candidate();
-		Session session = this.sessionFactory.openSession();
-		CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
-		Candidates candidates = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
-		if(candidates != null) {
-			currentCandidate = DTBConverter.getCandidate(candidates, session);
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			Candidates candidates = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
+			if(candidates != null) {
+				currentCandidate = DTBConverter.getCandidate(candidates, session);
+			}
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+		} finally {
+			closeSession(session);
 		}
-		session.close();
 		return currentCandidate;
 	}
 
@@ -210,17 +263,24 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			return ERROR_INCOMPLETE_DETAILS;
 		}
 		String result = RESPONSE_OK;
-		Session session = this.sessionFactory.openSession();
-		Transaction tx = session.beginTransaction();
-		CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
-		JobPost post = candidateDaoImpl.getJobApplication(application.getId(), session);
-		if (post != null) {
-			BTDConverter.setJobPost(application, post);
-			post.setEducation(checkForAvailableEducation(session, BTDConverter.getEducations(application.getEducationRequired())));
-			post.setSkills(checkForAvailableSkills(session, BTDConverter.getSkills(application.getSkillsRequired())));
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			Transaction tx = session.beginTransaction();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			JobPost post = candidateDaoImpl.getJobApplication(application.getId(), session);
+			if (post != null) {
+				BTDConverter.setJobPost(application, post);
+				post.setEducation(checkForAvailableEducation(session, BTDConverter.getEducations(application.getEducationRequired())));
+				post.setSkills(checkForAvailableSkills(session, BTDConverter.getSkills(application.getSkillsRequired())));
+			}
+			tx.commit();
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+			result = e.getMessage();
+		} finally {
+			closeSession(session);
 		}
-		tx.commit();
-		session.close();
 		return result;
 	}
 
@@ -231,15 +291,22 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			return ERROR_INCOMPLETE_DETAILS;
 		}
 		String result = RESPONSE_OK;
-		Session session = this.sessionFactory.openSession();
-		Transaction tx = session.beginTransaction();
-		CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
-		JobPost post = candidateDaoImpl.getJobApplication(application.getId(), session);
-		if (post != null) {
-			session.delete(post);
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			Transaction tx = session.beginTransaction();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			JobPost post = candidateDaoImpl.getJobApplication(application.getId(), session);
+			if (post != null) {
+				session.delete(post);
+			}
+			tx.commit();
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+			result = e.getMessage();
+		} finally {
+			closeSession(session);
 		}
-		tx.commit();
-		session.close();
 		return result;
 	}
 	
@@ -249,11 +316,18 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		if(skill == null) {
 			return null;
 		}
-		Session session = this.sessionFactory.openSession();
-		CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
-		List<Skills> skills = candidateDaoImpl.getSkillsByname(skill.getName(), session);
-		List<JobSkill> jobSkills = DTBConverter.getJobSkills(new HashSet<Skills>(skills));
-		session.close();
+		Session session = null;
+		List<JobSkill> jobSkills = null;
+		try {
+			session = this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			List<Skills> skills = candidateDaoImpl.getSkillsByname(skill.getName(), session);
+			jobSkills = DTBConverter.getJobSkills(new HashSet<Skills>(skills));
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+		} finally {
+			closeSession(session);
+		}
 		return jobSkills;
 	}
 	
@@ -262,11 +336,18 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		if(qualification == null) {
 			return null;
 		}
-		Session session = this.sessionFactory.openSession();
-		CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
-		List<Education> educations = candidateDaoImpl.getEducationsByName(qualification.getName(), session);
-		List<Qualification> qualifications = DTBConverter.getQualifications(new HashSet<Education>(educations));
-		session.close();
+		List<Qualification> qualifications = null;
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			List<Education> educations = candidateDaoImpl.getEducationsByName(qualification.getName(), session);
+			qualifications = DTBConverter.getQualifications(new HashSet<Education>(educations));
+		} catch (Exception e) {
+			
+		} finally {
+			closeSession(session);
+		}
 		return qualifications;
 	}
 
