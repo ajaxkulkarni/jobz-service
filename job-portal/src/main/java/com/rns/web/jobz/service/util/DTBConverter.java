@@ -1,5 +1,6 @@
 package com.rns.web.jobz.service.util;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,7 +50,8 @@ public class DTBConverter {
 				jobApplication.setInterestShownByPoster(application.getInterestShownByPoster());
 				jobApplication.setPostedBy(getCandidateBasic(application.getJobPost().getPostedBy()));
 				jobApplication.setAppliedDate(application.getAppliedDate());
-				jobApplication.setCompatibility(JobzUtils.calculateCompatibility(currentCandidate, jobApplication));
+				BigDecimal compatibility = JobzUtils.calculateCompatibility(currentCandidate, jobApplication);
+				jobApplication.setCompatibility(compatibility);
 				jobApplication.setInterestShownBySeeker(application.getInterestShownBySeeker());
 				if (StringUtils.equals(JobzConstants.YES, application.getInterestShownByPoster())) {
 					if (StringUtils.equals(JobzConstants.YES, application.getInterestShownBySeeker())) {
@@ -63,7 +65,7 @@ public class DTBConverter {
 			}
 
 		}
-		
+
 		currentCandidate.setJobRequests(JobzUtils.sortByCompatibility(jobRequests));
 		currentCandidate.setAcceptedJobs(JobzUtils.sortByCompatibility(acceptedJobs));
 		currentCandidate.setAppliedJobs(JobzUtils.sortByCompatibility(appliedJobs));
@@ -81,16 +83,17 @@ public class DTBConverter {
 				for (CandidateApplication candi : post.getApplications()) {
 					if (candi.getCandidates() != null) {
 						Candidate candidate = getCandidateBasic(candi.getCandidates());
-						candidate.setCompatibility(JobzUtils.calculateCompatibility(candidate, application));
+						BigDecimal compatibility = JobzUtils.calculateCompatibility(candidate, application);
+						candidate.setCompatibility(compatibility);
 						candidate.setAppliedDate(candi.getAppliedDate());
 						candidate.setSeekerInterested(candi.getInterestShownBySeeker());
 						candidate.setPosterInterested(candi.getInterestShownByPoster());
 						if (StringUtils.equals(JobzConstants.YES, candi.getInterestShownByPoster())) {
-							//candidate.setPosterInterested(JobzConstants.YES);
+							// candidate.setPosterInterested(JobzConstants.YES);
 							interestCandidates.add(candidate);
 							profileInterests.add(candidate);
 							if (StringUtils.equals(JobzConstants.YES, candi.getInterestShownBySeeker())) {
-								//candidate.setSeekerInterested(JobzConstants.YES);
+								// candidate.setSeekerInterested(JobzConstants.YES);
 								acceptedProfiles.add(candidate);
 							}
 						} else {
@@ -104,26 +107,29 @@ public class DTBConverter {
 				List<Candidates> allCandidates = new CandidateDaoImpl().getAllCandidates(session);
 				List<Candidate> matchingCandidates = new ArrayList<Candidate>();
 				for (Candidates availableCandidates : allCandidates) {
-					if(StringUtils.equals(currentCandidate.getEmail(), availableCandidates.getEmail())) {
+					if (StringUtils.equals(currentCandidate.getEmail(), availableCandidates.getEmail())) {
 						continue;
 					}
 					if (candidatePresent(application, availableCandidates)) {
 						continue;
 					}
 					Candidate candidate = getCandidateBasic(availableCandidates);
-					candidate.setCompatibility(JobzUtils.calculateCompatibility(candidate, application));
-					matchingCandidates.add(candidate);
+					BigDecimal compatibility = JobzUtils.calculateCompatibility(candidate, application);
+					candidate.setCompatibility(compatibility);
+					if (isCompatible(compatibility)) {
+						matchingCandidates.add(candidate);
+					}
 				}
 				application.setMatchingCandidates(JobzUtils.sortByCompatibilityCandidates(matchingCandidates));
 				postedJobs.add(application);
 			}
 
 		}
-		
+
 		currentCandidate.setAcceptedProfiles(JobzUtils.sortByCompatibilityCandidates(acceptedProfiles));
 		currentCandidate.setProfileInterests(JobzUtils.sortByCompatibilityCandidates(profileInterests));
 		currentCandidate.setPostedJobs(postedJobs);
-		//JobzUtils.sortByCompatibility(postedJobs);
+		// JobzUtils.sortByCompatibility(postedJobs);
 	}
 
 	private static boolean candidatePresent(JobApplication application, Candidates candidates) {
@@ -155,17 +161,25 @@ public class DTBConverter {
 		List<JobApplication> allApplications = new ArrayList<JobApplication>();
 		if (CollectionUtils.isNotEmpty(allJobs)) {
 			for (JobPost post : allJobs) {
-				if(jobPresent(post, currentCandidate)) {
+				if (jobPresent(post, currentCandidate)) {
 					continue;
 				}
 				JobApplication application = DTBConverter.getJobApplication(post);
 				application.setPostedBy(DTBConverter.getCandidateBasic(post.getPostedBy()));
-				application.setCompatibility(JobzUtils.calculateCompatibility(currentCandidate, application));
-				allApplications.add(application);
+				BigDecimal compatibility = JobzUtils.calculateCompatibility(currentCandidate, application);
+				application.setCompatibility(compatibility);
+				if (isCompatible(compatibility)) {
+					allApplications.add(application);
+				}
+
 			}
 			JobzUtils.sortByCompatibility(allApplications);
 		}
 		currentCandidate.setAvailableJobs(allApplications);
+	}
+
+	private static boolean isCompatible(BigDecimal compatibility) {
+		return BigDecimal.ZERO.compareTo(compatibility) < 0;
 	}
 
 	private static boolean jobPresent(JobPost post, Candidate candidate) {

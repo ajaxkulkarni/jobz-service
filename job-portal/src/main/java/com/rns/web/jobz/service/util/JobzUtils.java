@@ -33,14 +33,14 @@ public class JobzUtils {
 			}
 		}
 		
-		for(Qualification education : jobApplication.getEducationRequired()) {
+		/*for(Qualification education : jobApplication.getEducationRequired()) {
 			criteria++;
 			for(Qualification candidateQualification : currentCandidate.getEducations()) {
 				if(StringUtils.equalsIgnoreCase(education.getName(), candidateQualification.getName())) {
 					matchCount++;
 				}
 			}
-		}
+		}*/
 		
 		/*if(jobApplication.getExperience() != null) {
 			criteria = criteria + jobApplication.getExperience().doubleValue();
