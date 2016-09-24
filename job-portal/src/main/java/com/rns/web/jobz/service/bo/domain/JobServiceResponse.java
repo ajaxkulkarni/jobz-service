@@ -9,6 +9,7 @@ public class JobServiceResponse {
 	private Candidate candidateProfile;
 	private List<JobSkill> matchingJobSkills;
 	private List<Qualification> matchingEducations;
+	private AdminResponse adminResponse;
 	
 	public Integer getStatus() {
 		return status;
@@ -39,6 +40,12 @@ public class JobServiceResponse {
 	}
 	public void setMatchingEducations(List<Qualification> matchingEducations) {
 		this.matchingEducations = matchingEducations;
+	}
+	public AdminResponse getAdminResponse() {
+		return adminResponse;
+	}
+	public void setAdminResponse(AdminResponse adminResponse) {
+		this.adminResponse = adminResponse;
 	}
 
 }

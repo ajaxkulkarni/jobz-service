@@ -13,6 +13,10 @@
 	<bean id="candidateBo" class="com.rns.web.jobz.service.bo.impl.CandidateBoImpl">
 		<property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory" />
 	</bean>
+	
+	<bean id="adminBo" class="com.rns.web.jobz.service.bo.impl.AdminBoImpl">
+		<property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory" />
+	</bean>
 
 	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
 		destroy-method="close">

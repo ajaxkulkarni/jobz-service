@@ -1,9 +1,7 @@
 package com.rns.web.jobz.service.util;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -43,16 +41,12 @@ public class DTBConverter {
 		List<JobApplication> jobRequests = new ArrayList<JobApplication>();
 		if (CollectionUtils.isNotEmpty(candidates.getApplications())) {
 			for (CandidateApplication application : candidates.getApplications()) {
-				if (application.getJobPost() == null) {
+				JobApplication jobApplication = getJobApplication(application);
+				if(jobApplication == null) {
 					continue;
 				}
-				JobApplication jobApplication = getJobApplication(application.getJobPost());
-				jobApplication.setInterestShownByPoster(application.getInterestShownByPoster());
-				jobApplication.setPostedBy(getCandidateBasic(application.getJobPost().getPostedBy()));
-				jobApplication.setAppliedDate(application.getAppliedDate());
 				BigDecimal compatibility = JobzUtils.calculateCompatibility(currentCandidate, jobApplication);
 				jobApplication.setCompatibility(compatibility);
-				jobApplication.setInterestShownBySeeker(application.getInterestShownBySeeker());
 				if (StringUtils.equals(JobzConstants.YES, application.getInterestShownByPoster())) {
 					if (StringUtils.equals(JobzConstants.YES, application.getInterestShownBySeeker())) {
 						acceptedJobs.add(jobApplication);
@@ -69,6 +63,18 @@ public class DTBConverter {
 		currentCandidate.setJobRequests(JobzUtils.sortByCompatibility(jobRequests));
 		currentCandidate.setAcceptedJobs(JobzUtils.sortByCompatibility(acceptedJobs));
 		currentCandidate.setAppliedJobs(JobzUtils.sortByCompatibility(appliedJobs));
+	}
+
+	private static JobApplication getJobApplication(CandidateApplication application) {
+		if (application == null || application.getJobPost() == null) {
+			return null;
+		}
+		JobApplication jobApplication = getJobApplication(application.getJobPost());
+		jobApplication.setInterestShownByPoster(application.getInterestShownByPoster());
+		jobApplication.setPostedBy(getCandidateBasic(application.getJobPost().getPostedBy()));
+		jobApplication.setAppliedDate(application.getAppliedDate());
+		jobApplication.setInterestShownBySeeker(application.getInterestShownBySeeker());
+		return jobApplication;
 	}
 
 	private static void getPostedJobs(Candidates candidates, Session session, Candidate currentCandidate) {
@@ -165,6 +171,9 @@ public class DTBConverter {
 					continue;
 				}
 				JobApplication application = DTBConverter.getJobApplication(post);
+				if(application == null) {
+					continue;
+				}
 				application.setPostedBy(DTBConverter.getCandidateBasic(post.getPostedBy()));
 				BigDecimal compatibility = JobzUtils.calculateCompatibility(currentCandidate, application);
 				application.setCompatibility(compatibility);
@@ -245,17 +254,11 @@ public class DTBConverter {
 		application.setJobTitle(post.getJobTitle());
 		application.setType(post.getType());
 		application.setSector(getSector(post.getSector()));
-		application.setExpiryDateString(convertDate(application.getExpiryDate()));
+		application.setExpiryDateString(CommonUtils.convertDate(application.getExpiryDate()));
+		application.setPostedDateString(CommonUtils.convertDate(application.getPostedDate()));
 		return application;
 	}
 
-	private static String convertDate(Date date) {
-		try {
-			return new SimpleDateFormat("yyyy-MM-dd").format(date);
-		} catch (Exception e) {
-		}
-		return null;
-	}
 
 	private static JobSector getSector(Integer sector2) {
 		JobSector sector = new JobSector();
@@ -289,5 +292,38 @@ public class DTBConverter {
 		}
 		return jobSkills;
 	}
+	
+	public static List<JobApplication> getJobApplications(List<JobPost> jobPosts) {
+		List<JobApplication> postedJobs;
+		postedJobs = new ArrayList<JobApplication>();
+		for(JobPost post: jobPosts) {
+			JobApplication app = getJobApplication(post);
+			app.setPostedBy(getCandidateBasic(post.getPostedBy()));
+			if(CollectionUtils.isNotEmpty(post.getApplications())) {
+				app.setNoOfApplications(post.getApplications().size());
+			}
+			/*if(CollectionUtils.isNotEmpty(post.get)) {
+				app.setNoOfMatches(post.get);
+			}*/
+			if(CollectionUtils.isNotEmpty(post.getApplications())) {
+				app.setNoOfApplications(post.getApplications().size());
+			}
+			if(app != null) {
+				postedJobs.add(app);
+			}
+		}
+		return postedJobs;
+	}
 
+	public static List<JobApplication> getJobApplicants(List<CandidateApplication> applications) {
+		List<JobApplication> jobApplications = new ArrayList<JobApplication>();
+		for(CandidateApplication post: applications) {
+			JobApplication application = getJobApplication(post);
+			if(application != null) {
+				jobApplications.add(application);
+			}
+		}
+		return jobApplications;
+	}
+	
 }

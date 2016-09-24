@@ -24,6 +24,7 @@ import com.rns.web.jobz.service.dao.domain.JobPost;
 import com.rns.web.jobz.service.dao.domain.Skills;
 import com.rns.web.jobz.service.dao.impl.CandidateDaoImpl;
 import com.rns.web.jobz.service.util.BTDConverter;
+import com.rns.web.jobz.service.util.CommonUtils;
 import com.rns.web.jobz.service.util.DTBConverter;
 import com.rns.web.jobz.service.util.JobzConstants;
 import com.rns.web.jobz.service.util.LoggingUtil;
@@ -59,19 +60,13 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 			result = e.getMessage();
 		} finally {
-			closeSession(session);
+			CommonUtils.closeSession(session);
 		}
 		
 		return result;
 	}
 
-	private void closeSession(Session session) {
-		if(session == null || !session.isOpen())  {
-			return;
-		}
-		session.close();
-		System.out.println("Session closed!");
-	}
+	
 
 	private Set<Education> checkForAvailableEducation(Session session, Set<Education> education2) {
 		if (CollectionUtils.isEmpty(education2)) {
@@ -131,7 +126,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 			result = e.getMessage();
 		} finally {
-			closeSession(session);
+			CommonUtils.closeSession(session);
 		}
 		
 		return result;
@@ -158,7 +153,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 		} finally {
-			closeSession(session);
+			CommonUtils.closeSession(session);
 		}
 		return loginCandidate;
 	}
@@ -187,7 +182,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 			result = e.getMessage();
 		} finally {
-			closeSession(session);
+			CommonUtils.closeSession(session);
 		}
 		return result;
 	}
@@ -229,7 +224,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 			result = e.getMessage();
 		} finally {
-			closeSession(session);
+			CommonUtils.closeSession(session);
 		}
 		return result;
 	}
@@ -251,7 +246,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 		} finally {
-			closeSession(session);
+			CommonUtils.closeSession(session);
 		}
 		return currentCandidate;
 	}
@@ -279,7 +274,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 			result = e.getMessage();
 		} finally {
-			closeSession(session);
+			CommonUtils.closeSession(session);
 		}
 		return result;
 	}
@@ -305,7 +300,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 			result = e.getMessage();
 		} finally {
-			closeSession(session);
+			CommonUtils.closeSession(session);
 		}
 		return result;
 	}
@@ -326,7 +321,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 		} finally {
-			closeSession(session);
+			CommonUtils.closeSession(session);
 		}
 		return jobSkills;
 	}
@@ -346,7 +341,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		} catch (Exception e) {
 			
 		} finally {
-			closeSession(session);
+			CommonUtils.closeSession(session);
 		}
 		return qualifications;
 	}

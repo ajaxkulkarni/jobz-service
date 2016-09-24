@@ -23,14 +23,18 @@ public class JobApplication {
 	private List<JobSkill> skillsRequired;
 	private List<Qualification> educationRequired;
 	private List<Candidate> applications;
+	private Integer noOfApplications;
 	private List<Candidate> matchingCandidates;
+	private Integer noOfMatches;
 	private List<Candidate> interestCandidates;
+	private Integer noOfInterests;
 	private Candidate currentCandidate;
 	private String interestShownByPoster;
 	private String interestShownBySeeker;
 	private BigDecimal compatibility;
 	private JobSector sector;
 	private String expiryDateString;
+	private String postedDateString;
 	
 	public Integer getId() {
 		return id;
@@ -183,5 +187,30 @@ public class JobApplication {
 	public void setExpiryDateString(String expiryDateString) {
 		this.expiryDateString = expiryDateString;
 	}
+	public Integer getNoOfApplications() {
+		return noOfApplications;
+	}
+	public void setNoOfApplications(Integer noOfApplications) {
+		this.noOfApplications = noOfApplications;
+	}
+	public Integer getNoOfMatches() {
+		return noOfMatches;
+	}
+	public void setNoOfMatches(Integer noOfMatches) {
+		this.noOfMatches = noOfMatches;
+	}
+	public Integer getNoOfInterests() {
+		return noOfInterests;
+	}
+	public void setNoOfInterests(Integer noOfInterests) {
+		this.noOfInterests = noOfInterests;
+	}
+	public String getPostedDateString() {
+		return postedDateString;
+	}
+	public void setPostedDateString(String postedDateString) {
+		this.postedDateString = postedDateString;
+	}
+	
 	
 }
