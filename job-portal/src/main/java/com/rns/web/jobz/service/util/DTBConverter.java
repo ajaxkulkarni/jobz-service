@@ -70,6 +70,7 @@ public class DTBConverter {
 			return null;
 		}
 		JobApplication jobApplication = getJobApplication(application.getJobPost());
+		jobApplication.setCurrentCandidate(getCandidateBasic(application.getCandidates()));
 		jobApplication.setInterestShownByPoster(application.getInterestShownByPoster());
 		jobApplication.setPostedBy(getCandidateBasic(application.getJobPost().getPostedBy()));
 		jobApplication.setAppliedDate(application.getAppliedDate());
