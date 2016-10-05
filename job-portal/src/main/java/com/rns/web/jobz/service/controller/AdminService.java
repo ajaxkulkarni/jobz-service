@@ -89,6 +89,27 @@ public class AdminService implements JobzConstants {
 	}
 
 	
+	@POST
+	@Path("/adminGetAllUsers")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public JobServiceResponse getAllusers(JobServiceRequest request) {
+		//System.out.println("Here in search skill!");
+		LoggingUtil.logObject("Admin all users Request :", request);
+		JobServiceResponse response = initResponse();
+		try {
+			AdminResponse admin = new AdminResponse();
+			admin.setCandidates(adminBo.getAllUsers());
+			response.setAdminResponse(admin);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(-999);
+			response.setResponseText(ERROR_IN_PROCESSING);
+		}
+		LoggingUtil.logObject("Admin all users Response :", response);
+		return response;
+	}
+	
 
 
 	private JobServiceResponse initResponse() {

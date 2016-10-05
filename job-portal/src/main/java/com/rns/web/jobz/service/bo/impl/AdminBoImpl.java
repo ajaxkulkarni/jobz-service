@@ -1,14 +1,18 @@
 package com.rns.web.jobz.service.bo.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
 import com.rns.web.jobz.service.bo.api.AdminBo;
+import com.rns.web.jobz.service.bo.domain.Candidate;
 import com.rns.web.jobz.service.bo.domain.JobApplication;
 import com.rns.web.jobz.service.dao.domain.CandidateApplication;
+import com.rns.web.jobz.service.dao.domain.Candidates;
 import com.rns.web.jobz.service.dao.domain.JobPost;
 import com.rns.web.jobz.service.dao.impl.AdminDaoImpl;
 import com.rns.web.jobz.service.util.CommonUtils;
@@ -75,6 +79,28 @@ public class AdminBoImpl implements AdminBo {
 			CommonUtils.closeSession(session);
 		}
 		return postedJobs;
+	}
+	
+	@Override
+	public List<Candidate> getAllUsers() {
+		List<Candidate> candidates = new ArrayList<Candidate>();
+		Session session = this.sessionFactory.openSession();;
+		try {
+			List<Candidates> candidatesList = new AdminDaoImpl().getAllCandidates(session);
+			if(CollectionUtils.isNotEmpty(candidatesList)) {
+				for(Candidates c: candidatesList) {
+					Candidate candidate = DTBConverter.getCandidateBasic(c);
+					candidates.add(candidate);
+				}
+			}
+			
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+		} finally {
+			CommonUtils.closeSession(session);
+		}
+		
+		return candidates;
 	}
 
 }
