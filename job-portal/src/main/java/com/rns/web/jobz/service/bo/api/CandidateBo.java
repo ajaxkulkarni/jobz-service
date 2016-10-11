@@ -10,6 +10,7 @@ import com.rns.web.jobz.service.bo.domain.Qualification;
 public interface CandidateBo {
 
 	String registerCandidate(Candidate candidate);
+	String activateCandidate(Candidate candidate);
 	String updateCandidate(Candidate candidate);
 	Candidate login(Candidate candidate);
 	String postNewJob(JobApplication application);

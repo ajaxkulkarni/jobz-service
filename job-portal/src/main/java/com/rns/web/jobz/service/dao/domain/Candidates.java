@@ -40,6 +40,8 @@ public class Candidates {
 	private Set<JobPost> posts = new HashSet<JobPost>();
 	private Set<CandidateApplication> applications = new HashSet<CandidateApplication>();
 	private Integer sector;
+	private String status;
+	private String activationCode;
 
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
@@ -187,5 +189,23 @@ public class Candidates {
 	@Column(name = "sector")
 	public void setSector(Integer sector) {
 		this.sector = sector;
+	}
+
+	@Column(name = "status")
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	@Column(name = "activation_code")
+	public String getActivationCode() {
+		return activationCode;
+	}
+
+	public void setActivationCode(String activationCode) {
+		this.activationCode = activationCode;
 	}
 }

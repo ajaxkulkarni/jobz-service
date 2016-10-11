@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +19,7 @@ public class JobzUtils {
 	public static BigDecimal calculateCompatibility(Candidate currentCandidate, JobApplication jobApplication) {
 		
 		if(checkDiffSector(currentCandidate, jobApplication)) {
-			return BigDecimal.ZERO;
+			return new BigDecimal(-1);
 		}
 		
 		double criteria = 0;
@@ -134,6 +135,13 @@ public class JobzUtils {
 			
 		});
 		return applications;
+	}
+
+	public static String generateActivationCode(Candidate candidate) {
+		if(candidate == null) {
+			return "";
+		}
+		return StringUtils.substring(candidate.getEmail(), 0, 1) + new Random().nextInt(10000);
 	}
 
 }

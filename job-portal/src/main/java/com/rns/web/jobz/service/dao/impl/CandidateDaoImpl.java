@@ -12,6 +12,7 @@ import com.rns.web.jobz.service.dao.domain.Candidates;
 import com.rns.web.jobz.service.dao.domain.Education;
 import com.rns.web.jobz.service.dao.domain.JobPost;
 import com.rns.web.jobz.service.dao.domain.Skills;
+import com.rns.web.jobz.service.util.JobzConstants;
 
 public class CandidateDaoImpl {
 
@@ -90,7 +91,8 @@ public class CandidateDaoImpl {
 	}
 
 	public List<Candidates> getAllCandidates(Session session) {
-		Query query = session.createQuery("from Candidates");
+		Query query = session.createQuery("from Candidates where status=:active OR status IS NULL");
+		query.setString("active", JobzConstants.ACTIVE);
 		return query.list();
 	}
 

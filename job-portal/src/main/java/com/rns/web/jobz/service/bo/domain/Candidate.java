@@ -30,6 +30,9 @@ public class Candidate {
 	private String seekerInterested;
 	private String posterInterested;
 	private JobSector sector;
+	private String status;
+	private String activationCode;
+	private JobApplication application;
 	
 	public Integer getId() {
 		return id;
@@ -174,6 +177,24 @@ public class Candidate {
 	}
 	public void setSector(JobSector sector) {
 		this.sector = sector;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public String getActivationCode() {
+		return activationCode;
+	}
+	public void setActivationCode(String activationCode) {
+		this.activationCode = activationCode;
+	}
+	public JobApplication getApplication() {
+		return application;
+	}
+	public void setApplication(JobApplication application) {
+		this.application = application;
 	}
 	
 }

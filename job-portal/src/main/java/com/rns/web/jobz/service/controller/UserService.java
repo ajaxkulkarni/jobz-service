@@ -88,6 +88,26 @@ public class UserService implements JobzConstants {
 		LoggingUtil.logObject("Register Response :", response);
 		return response;
 	}
+	
+	@POST
+	@Path("/activateUser")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public JobServiceResponse activateUser(JobServiceRequest request) {
+		System.out.println("Here in activation!");
+		LoggingUtil.logObject("Activate Request :", request);
+		JobServiceResponse response = initResponse();
+		try {
+			response.setResponseText(candidateBo.activateCandidate(request.getRequestedBy()));
+			checkForError(response);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(-999);
+			response.setResponseText(ERROR_IN_PROCESSING);
+		}
+		LoggingUtil.logObject("Activate Response :", response);
+		return response;
+	}
 
 	@POST
 	@Path("/loginUser")

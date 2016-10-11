@@ -1,5 +1,6 @@
 package com.rns.web.jobz.service.bo.impl;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import com.rns.web.jobz.service.bo.api.CandidateBo;
 import com.rns.web.jobz.service.bo.domain.Candidate;
@@ -27,11 +29,15 @@ import com.rns.web.jobz.service.util.BTDConverter;
 import com.rns.web.jobz.service.util.CommonUtils;
 import com.rns.web.jobz.service.util.DTBConverter;
 import com.rns.web.jobz.service.util.JobzConstants;
+import com.rns.web.jobz.service.util.JobzMailUtil;
+import com.rns.web.jobz.service.util.JobzUtils;
 import com.rns.web.jobz.service.util.LoggingUtil;
 
 public class CandidateBoImpl implements CandidateBo, JobzConstants {
 
 	private SessionFactory sessionFactory;
+	
+	private ThreadPoolTaskExecutor executor;
 	
 
 	@Override
@@ -50,7 +56,14 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 				Transaction tx = session.beginTransaction();
 				candidates.setEducation(checkForAvailableEducation(session, BTDConverter.getEducations(candidate.getEducations())));
 				candidates.setSkills(checkForAvailableSkills(session, BTDConverter.getSkills(candidate.getJobSkills())));
+				String activationCode = JobzUtils.generateActivationCode(candidate);
+				candidate.setActivationCode(activationCode);
+				candidates.setActivationCode(activationCode);
+				candidates.setStatus(INACTIVE);
 				candidateDaoImpl.addCandidate(candidates, session);
+				JobzMailUtil mailer = new JobzMailUtil(MAIL_TYPE_ACTIVATION);
+				mailer.setCandidate(candidate);
+				executor.execute(mailer);
 				tx.commit();
 			} else {
 				result = ERROR_EMAIL_EXISTS;
@@ -177,6 +190,11 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 				Transaction tx = session.beginTransaction();
 				session.persist(post);
 				tx.commit();
+				JobzMailUtil mailer = new JobzMailUtil(MAIL_TYPE_NEW_JOB);
+				JobApplication jobApplication = DTBConverter.getJobApplication(post);
+				mailer.setCandidates(DTBConverter.getMatchingCandidates(session, application.getPostedBy(), jobApplication));
+				mailer.setJobApplication(jobApplication);
+				executor.execute(mailer);
 			}
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
@@ -219,6 +237,24 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 				Transaction tx = session.beginTransaction();
 				session.persist(candidateApplication);
 				tx.commit();
+				JobzMailUtil jobzMailUtil = null;
+				if(StringUtils.equals(YES,candidateApplication.getInterestShownByPoster()) && StringUtils.equals(YES,candidateApplication.getInterestShownBySeeker())) {
+					if(StringUtils.equals(YES, application.getInterestShownByPoster())) {
+						jobzMailUtil = new JobzMailUtil(MAIL_TYPE_GOT_POSTER_CONTACT);
+					} else {
+						jobzMailUtil = new JobzMailUtil(MAIL_TYPE_GOT_SEEKER_CONTACT);
+					}
+				} else if (StringUtils.equals(YES,candidateApplication.getInterestShownByPoster())) {
+					jobzMailUtil = new JobzMailUtil(MAIL_TYPE_POSTER_APPLY);
+				} else {
+					jobzMailUtil = new JobzMailUtil(MAIL_TYPE_SEEKER_APPLY);
+				}
+				JobApplication jobApplication = DTBConverter.getJobApplication(candidateApplication);
+				BigDecimal compatibility = JobzUtils.calculateCompatibility(jobApplication.getCurrentCandidate(), jobApplication);
+				jobApplication.setCompatibility(compatibility);
+				jobzMailUtil.setJobApplication(jobApplication);
+				jobzMailUtil.setCandidate(jobApplication.getCurrentCandidate());
+				executor.execute(jobzMailUtil);
 			}
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
@@ -352,6 +388,50 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 
 	public void setSessionFactory(SessionFactory sessionFactory) {
 		this.sessionFactory = sessionFactory;
+	}
+
+
+
+	@Override
+	public String activateCandidate(Candidate candidate) {
+		if (candidate == null || StringUtils.isEmpty(candidate.getEmail())) {
+			return ERROR_INCOMPLETE_DETAILS;
+		}
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
+			if(registeredCandidate == null) {
+				return ERROR_INVALID_ACTIVATION_CODE;
+			}
+			else if(!StringUtils.equals(candidate.getActivationCode(), registeredCandidate.getActivationCode())) {
+				return ERROR_INVALID_ACTIVATION_CODE;
+			}
+			Transaction tx = session.beginTransaction();
+			registeredCandidate.setStatus(ACTIVE);
+			JobzMailUtil mailer = new JobzMailUtil(MAIL_TYPE_REGISTRATION);
+			mailer.setCandidate(DTBConverter.getCandidateBasic(registeredCandidate));
+			executor.execute(mailer);
+			tx.commit();
+		} catch (Exception e) {
+			
+		} finally {
+			CommonUtils.closeSession(session);
+		}
+		return RESPONSE_OK;
+	}
+
+
+
+	public ThreadPoolTaskExecutor getExecutor() {
+		return executor;
+	}
+
+
+
+	public void setExecutor(ThreadPoolTaskExecutor executor) {
+		this.executor = executor;
 	}
 
 }
