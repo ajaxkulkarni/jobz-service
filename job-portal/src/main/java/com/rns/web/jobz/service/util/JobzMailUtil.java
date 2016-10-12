@@ -29,7 +29,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 	private static final String MAIL_ID = "contact@talnote.com";
 	private static final String MAIL_AUTH = "true";
 	private static final String MAIL_HOST = "support.tiffeat.com";
-	private static final String MAIL_PORT = "465";
+	private static final String MAIL_PORT = "25";
 	private static final String MAIL_PASSWORD = "contact_talnote2016";
 
 	private String type;
