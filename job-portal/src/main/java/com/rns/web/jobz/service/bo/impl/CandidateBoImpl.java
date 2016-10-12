@@ -393,25 +393,29 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 
 
 	@Override
-	public String activateCandidate(Candidate candidate) {
+	public Candidate activateCandidate(Candidate candidate) {
 		if (candidate == null || StringUtils.isEmpty(candidate.getEmail())) {
-			return ERROR_INCOMPLETE_DETAILS;
+			return null;
 		}
 		Session session = null;
+		Candidate curCandidate = null;
 		try {
 			session = this.sessionFactory.openSession();
 			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
 			Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
 			if(registeredCandidate == null) {
-				return ERROR_INVALID_ACTIVATION_CODE;
+				session.close();
+				return curCandidate;
 			}
 			else if(!StringUtils.equals(candidate.getActivationCode(), registeredCandidate.getActivationCode())) {
-				return ERROR_INVALID_ACTIVATION_CODE;
+				session.close();
+				return curCandidate;
 			}
 			Transaction tx = session.beginTransaction();
 			registeredCandidate.setStatus(ACTIVE);
 			JobzMailUtil mailer = new JobzMailUtil(MAIL_TYPE_REGISTRATION);
-			mailer.setCandidate(DTBConverter.getCandidateBasic(registeredCandidate));
+			curCandidate = DTBConverter.getCandidateBasic(registeredCandidate);
+			mailer.setCandidate(curCandidate);
 			executor.execute(mailer);
 			tx.commit();
 		} catch (Exception e) {
@@ -419,7 +423,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		} finally {
 			CommonUtils.closeSession(session);
 		}
-		return RESPONSE_OK;
+		return curCandidate;
 	}
 
 

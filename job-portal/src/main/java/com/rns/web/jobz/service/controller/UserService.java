@@ -98,8 +98,12 @@ public class UserService implements JobzConstants {
 		LoggingUtil.logObject("Activate Request :", request);
 		JobServiceResponse response = initResponse();
 		try {
-			response.setResponseText(candidateBo.activateCandidate(request.getRequestedBy()));
-			checkForError(response);
+			Candidate activeCandidate = candidateBo.activateCandidate(request.getRequestedBy());
+			response.setCandidateProfile(activeCandidate);
+			if (activeCandidate == null) {
+				response.setResponseText(ERROR_INVALID_ACTIVATION_CODE);
+				response.setStatus(-111);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setStatus(-999);
