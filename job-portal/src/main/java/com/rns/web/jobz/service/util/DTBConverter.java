@@ -244,6 +244,7 @@ public class DTBConverter {
 		currentCandidate.setType(candidates.getType());
 		currentCandidate.setSector(getSector(candidates.getSector()));
 		currentCandidate.setStatus(candidates.getStatus());
+		currentCandidate.setActivationCode(candidates.getActivationCode());
 		return currentCandidate;
 	}
 
