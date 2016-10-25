@@ -23,6 +23,13 @@ public interface JobzConstants {
         put(2, "Telecommunication");
         put(3, "Mechanical");
         put(4, "Industrial");
+        put(5,"Media and publishing");
+        put(6,"Teaching");
+        put(7,"Sales and supply chain");
+        put(8,"Creative arts and design");
+        put(9,"Other");
+        put(10,"Medical");
+        put(11,"Construction");
     }});
 	
 	
