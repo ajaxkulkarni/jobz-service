@@ -2,11 +2,13 @@ package com.rns.web.jobz.service.util;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Session;
 
 import com.rns.web.jobz.service.bo.domain.Candidate;
@@ -60,9 +62,9 @@ public class DTBConverter {
 
 		}
 
-		currentCandidate.setJobRequests(JobzUtils.sortByCompatibility(jobRequests));
-		currentCandidate.setAcceptedJobs(JobzUtils.sortByCompatibility(acceptedJobs));
-		currentCandidate.setAppliedJobs(JobzUtils.sortByCompatibility(appliedJobs));
+		currentCandidate.setJobRequests(jobRequests);
+		currentCandidate.setAcceptedJobs(acceptedJobs);
+		currentCandidate.setAppliedJobs(appliedJobs);
 	}
 
 	public static JobApplication getJobApplication(CandidateApplication application) {
@@ -82,6 +84,7 @@ public class DTBConverter {
 		List<JobApplication> postedJobs = new ArrayList<JobApplication>();
 		List<Candidate> profileInterests = new ArrayList<Candidate>();
 		List<Candidate> acceptedProfiles = new ArrayList<Candidate>();
+		List<Candidate> appliedProfiles = new ArrayList<Candidate>();
 		if (CollectionUtils.isNotEmpty(candidates.getPosts())) {
 			for (JobPost post : candidates.getPosts()) {
 				JobApplication application = getJobApplication(post);
@@ -95,25 +98,28 @@ public class DTBConverter {
 						candidate.setAppliedDate(candi.getAppliedDate());
 						candidate.setSeekerInterested(candi.getInterestShownBySeeker());
 						candidate.setPosterInterested(candi.getInterestShownByPoster());
+						JobApplication shortListedFor = new JobApplication();
+						shortListedFor.setId(application.getId());
+						shortListedFor.setJobTitle(application.getJobTitle());
+						shortListedFor.setCompanyName(application.getCompanyName());
+						candidate.setApplication(shortListedFor);
 						if (StringUtils.equals(JobzConstants.YES, candi.getInterestShownByPoster())) {
 							// candidate.setPosterInterested(JobzConstants.YES);
-							interestCandidates.add(candidate);
-							profileInterests.add(candidate);
 							if (StringUtils.equals(JobzConstants.YES, candi.getInterestShownBySeeker())) {
-								JobApplication shortListedFor = new JobApplication();
-								shortListedFor.setJobTitle(application.getJobTitle());
-								shortListedFor.setCompanyName(application.getCompanyName());
-								candidate.setApplication(shortListedFor);
 								acceptedProfiles.add(candidate);
+							} else {
+								profileInterests.add(candidate);
+								interestCandidates.add(candidate);
 							}
 						} else {
 							applicants.add(candidate);
+							appliedProfiles.add(candidate);
 						}
 
 					}
 				}
-				application.setInterestCandidates(JobzUtils.sortByCompatibilityCandidates(interestCandidates));
-				application.setApplications(JobzUtils.sortByCompatibilityCandidates(applicants));
+				application.setInterestCandidates(interestCandidates);
+				application.setApplications(applicants);
 				List<Candidate> matchingCandidates = getMatchingCandidates(session, currentCandidate, application);
 				application.setMatchingCandidates(JobzUtils.sortByCompatibilityCandidates(matchingCandidates));
 				postedJobs.add(application);
@@ -121,8 +127,9 @@ public class DTBConverter {
 
 		}
 
-		currentCandidate.setAcceptedProfiles(JobzUtils.sortByCompatibilityCandidates(acceptedProfiles));
-		currentCandidate.setProfileInterests(JobzUtils.sortByCompatibilityCandidates(profileInterests));
+		currentCandidate.setAcceptedProfiles(acceptedProfiles);
+		currentCandidate.setProfileInterests(profileInterests);
+		currentCandidate.setInterestsReceived(appliedProfiles);
 		currentCandidate.setPostedJobs(postedJobs);
 		// JobzUtils.sortByCompatibility(postedJobs);
 	}
@@ -267,6 +274,9 @@ public class DTBConverter {
 		application.setSector(getSector(post.getSector()));
 		application.setExpiryDateString(CommonUtils.convertDate(application.getExpiryDate()));
 		application.setPostedDateString(CommonUtils.convertDate(application.getPostedDate()));
+		if(application.getExpiryDate() != null && application.getExpiryDate().compareTo(new Date()) < 0 ) { 
+			application.setExpired(true);
+		}
 		return application;
 	}
 

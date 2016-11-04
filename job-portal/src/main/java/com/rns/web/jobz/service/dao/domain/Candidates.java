@@ -16,6 +16,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.NotFound;
@@ -164,6 +165,7 @@ public class Candidates {
 
 	@NotFound(action = NotFoundAction.IGNORE)
 	@OneToMany(mappedBy = "postedBy")
+	@OrderBy("id DESC")
 	public Set<JobPost> getPosts() {
 		return posts;
 	}
@@ -174,6 +176,7 @@ public class Candidates {
 
 	@NotFound(action = NotFoundAction.IGNORE)
 	@OneToMany(mappedBy = "candidates")
+	@OrderBy("id DESC")
 	public Set<CandidateApplication> getApplications() {
 		return applications;
 	}

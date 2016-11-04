@@ -19,7 +19,8 @@ public class JobzUtils {
 	public static BigDecimal calculateCompatibility(Candidate currentCandidate, JobApplication jobApplication) {
 		
 		if(checkDiffSector(currentCandidate, jobApplication)) {
-			return new BigDecimal(-1);
+			//TODO: To show everything to evryone
+			return new BigDecimal(0);
 		}
 		
 		double criteria = 0;
@@ -47,11 +48,16 @@ public class JobzUtils {
 			criteria = criteria + jobApplication.getExperience().doubleValue();
 		}*/
 		if(jobApplication.getMinExperience() != null || jobApplication.getMaxExperience() != null) {
-			criteria++;
+			criteria = criteria + 2;
 		}
 		matchCount = matchCount + getExperiencePts(jobApplication, currentCandidate);
 		double compatibility = (matchCount/ criteria)*100;
-		return new BigDecimal(Math.ceil(compatibility));
+		BigDecimal compatScore = new BigDecimal(Math.ceil(compatibility));
+		if(compatScore!= null && BigDecimal.TEN.compareTo(compatScore) > 0) {
+			//TODO: Temporary change. To show everything to everyone
+			return BigDecimal.TEN;
+		}
+		return compatScore;
 	}
 
 	private static boolean checkDiffSector(Candidate currentCandidate, JobApplication jobApplication) {
@@ -80,7 +86,15 @@ public class JobzUtils {
 			points++;
 		}
 		
-		if(application.getMaxExperience() != null && currentCandidate.getExperience().compareTo(application.getMaxExperience()) > 0) {
+		if(application.getMaxExperience() != null && currentCandidate.getExperience().compareTo(application.getMaxExperience()) <= 0) {
+			points++;
+		}
+		
+		if(application.getMinExperience() != null && currentCandidate.getExperience().compareTo(application.getMinExperience().subtract(new BigDecimal(2))) < 0) {
+			points--;
+		}
+		
+		if(application.getMaxExperience() != null && currentCandidate.getExperience().compareTo(application.getMaxExperience().add(new BigDecimal(2))) > 0) {
 			points--;
 		}
 		

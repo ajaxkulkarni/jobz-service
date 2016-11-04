@@ -237,24 +237,28 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 				Transaction tx = session.beginTransaction();
 				session.persist(candidateApplication);
 				tx.commit();
-				JobzMailUtil jobzMailUtil = null;
-				if(StringUtils.equals(YES,candidateApplication.getInterestShownByPoster()) && StringUtils.equals(YES,candidateApplication.getInterestShownBySeeker())) {
-					if(StringUtils.equals(YES, application.getInterestShownByPoster())) {
-						jobzMailUtil = new JobzMailUtil(MAIL_TYPE_GOT_POSTER_CONTACT);
-					} else {
-						jobzMailUtil = new JobzMailUtil(MAIL_TYPE_GOT_SEEKER_CONTACT);
-					}
-				} else if (StringUtils.equals(YES,candidateApplication.getInterestShownByPoster())) {
-					jobzMailUtil = new JobzMailUtil(MAIL_TYPE_POSTER_APPLY);
-				} else {
-					jobzMailUtil = new JobzMailUtil(MAIL_TYPE_SEEKER_APPLY);
-				}
+				
+				JobzMailUtil jobzMailUtil = new JobzMailUtil();
 				JobApplication jobApplication = DTBConverter.getJobApplication(candidateApplication);
 				BigDecimal compatibility = JobzUtils.calculateCompatibility(jobApplication.getCurrentCandidate(), jobApplication);
 				jobApplication.setCompatibility(compatibility);
 				jobzMailUtil.setJobApplication(jobApplication);
 				jobzMailUtil.setCandidate(jobApplication.getCurrentCandidate());
-				executor.execute(jobzMailUtil);
+				if(StringUtils.equals(YES,candidateApplication.getInterestShownByPoster()) && StringUtils.equals(YES,candidateApplication.getInterestShownBySeeker())) {
+					if(StringUtils.equals(YES, application.getInterestShownByPoster())) {
+						jobzMailUtil.setType(MAIL_TYPE_GOT_POSTER_CONTACT);
+						executor.execute(jobzMailUtil);
+					} else {
+						jobzMailUtil.setType(MAIL_TYPE_GOT_SEEKER_CONTACT);
+						executor.execute(jobzMailUtil);
+					}
+				} else if (StringUtils.equals(YES,candidateApplication.getInterestShownByPoster())) {
+					jobzMailUtil.setType(MAIL_TYPE_POSTER_APPLY);
+					executor.execute(jobzMailUtil);
+				} else {
+					jobzMailUtil.setType(MAIL_TYPE_SEEKER_APPLY);
+					executor.execute(jobzMailUtil);
+				}
 			}
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));

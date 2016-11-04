@@ -25,6 +25,7 @@ public class Candidate {
 	private List<JobApplication> jobRequests;
 	private List<Candidate> profileInterests;
 	private List<Candidate> acceptedProfiles;
+	private List<Candidate> interestsReceived;
 	private BigDecimal compatibility;
 	private Date appliedDate;
 	private String seekerInterested;
@@ -195,6 +196,12 @@ public class Candidate {
 	}
 	public void setApplication(JobApplication application) {
 		this.application = application;
+	}
+	public List<Candidate> getInterestsReceived() {
+		return interestsReceived;
+	}
+	public void setInterestsReceived(List<Candidate> interestsReceived) {
+		this.interestsReceived = interestsReceived;
 	}
 	
 }

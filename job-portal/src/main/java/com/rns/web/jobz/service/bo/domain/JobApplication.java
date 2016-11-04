@@ -35,6 +35,7 @@ public class JobApplication {
 	private JobSector sector;
 	private String expiryDateString;
 	private String postedDateString;
+	private boolean isExpired;
 	
 	public Integer getId() {
 		return id;
@@ -210,6 +211,12 @@ public class JobApplication {
 	}
 	public void setPostedDateString(String postedDateString) {
 		this.postedDateString = postedDateString;
+	}
+	public boolean isExpired() {
+		return isExpired;
+	}
+	public void setExpired(boolean isExpired) {
+		this.isExpired = isExpired;
 	}
 	
 	

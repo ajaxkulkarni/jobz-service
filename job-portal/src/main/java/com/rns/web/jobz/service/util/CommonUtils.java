@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 
 public class CommonUtils {
@@ -42,4 +43,7 @@ public class CommonUtils {
 		return result.toString();
 	}
 	
+	public static String getStringValue(String value) {
+		return StringUtils.isNotEmpty(value) ? value : "";
+	}
 }

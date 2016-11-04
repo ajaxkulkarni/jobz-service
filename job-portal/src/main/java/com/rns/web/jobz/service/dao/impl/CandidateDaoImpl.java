@@ -91,8 +91,9 @@ public class CandidateDaoImpl {
 	}
 
 	public List<Candidates> getAllCandidates(Session session) {
-		Query query = session.createQuery("from Candidates where status=:active OR status IS NULL");
+		Query query = session.createQuery("from Candidates where type IS NULL OR type!=:poster AND (status=:active OR status IS NULL)");
 		query.setString("active", JobzConstants.ACTIVE);
+		query.setString("poster", "Poster");
 		return query.list();
 	}
 
