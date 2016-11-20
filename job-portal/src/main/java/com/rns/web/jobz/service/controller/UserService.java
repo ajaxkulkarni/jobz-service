@@ -1,10 +1,16 @@
 package com.rns.web.jobz.service.controller;
 
+import java.io.InputStream;
+
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,6 +24,8 @@ import com.rns.web.jobz.service.bo.domain.JobSkill;
 import com.rns.web.jobz.service.bo.domain.Qualification;
 import com.rns.web.jobz.service.util.JobzConstants;
 import com.rns.web.jobz.service.util.LoggingUtil;
+import com.sun.jersey.core.header.FormDataContentDisposition;
+import com.sun.jersey.multipart.FormDataParam;
 
 @Component
 @Path("/service")
@@ -266,6 +274,80 @@ public class UserService implements JobzConstants {
 		}
 		LoggingUtil.logObject("Delete Job Response :", response);
 		return response;
+	}
+	
+	@POST
+	@Path("/forgotPassword")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public JobServiceResponse forgotPassword(JobServiceRequest request) {
+		System.out.println("Here in forgot password!");
+		LoggingUtil.logObject("Forgot Pwd Request :", request);
+		JobServiceResponse response = initResponse();
+		try {
+			String result = candidateBo.forgotPassword(request.getRequestedBy());
+			response.setResponseText(result);
+			checkForError(response);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(-999);
+			response.setResponseText(ERROR_IN_PROCESSING);
+		}
+		LoggingUtil.logObject("Forgot Pwd Response :", response);
+		return response;
+	}
+	
+	@POST
+	@Path("/upload")
+	@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.APPLICATION_JSON)
+	public JobServiceResponse uploadFile(
+		@FormDataParam("file") InputStream uploadedInputStream,
+		@FormDataParam("file") FormDataContentDisposition fileDetail,
+		@FormDataParam("email") String email) {
+
+		LoggingUtil.logMessage("Upload CV request for :" + email);
+		JobServiceResponse response = initResponse();
+		try {
+			Candidate candidate = new Candidate();
+			candidate.setFilePath(fileDetail.getFileName());
+			candidate.setEmail(email);
+			candidate.setFile(uploadedInputStream);
+			String result = candidateBo.uploadResume(candidate);
+			response.setResponseText(result);
+			checkForError(response);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(-999);
+			response.setResponseText(ERROR_IN_PROCESSING);
+		}
+		LoggingUtil.logObject("Upload resume Response :", response);
+		return response;
+
+	}
+	
+	@GET
+	@Path("/download/{email}")
+	//@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.MULTIPART_FORM_DATA)
+	public Response uploadFile(@PathParam("email") String email) {
+		LoggingUtil.logMessage("Download CV request for :" + email);
+		try {
+			Candidate candidate = new Candidate();
+			candidate.setEmail(email);
+			Candidate currentCandidate = candidateBo.downloadResume(candidate);
+			ResponseBuilder response = Response.ok(currentCandidate.getResume());
+			response.header("Content-Disposition","attachment; filename=\"" + currentCandidate.getFilePath() + "\"");  
+			return response.build();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//LoggingUtil.logObject("Download resume Response :", response);
+		return null;
+
 	}
 
 

@@ -1,5 +1,7 @@
 package com.rns.web.jobz.service.bo.domain;
 
+import java.io.File;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +36,11 @@ public class Candidate {
 	private String status;
 	private String activationCode;
 	private JobApplication application;
+	private String filePath;
+	private InputStream file; 
+	private File resume;
+	private Date lastLogin;
+	private Integer noOfVisits;
 	
 	public Integer getId() {
 		return id;
@@ -202,6 +209,36 @@ public class Candidate {
 	}
 	public void setInterestsReceived(List<Candidate> interestsReceived) {
 		this.interestsReceived = interestsReceived;
+	}
+	public String getFilePath() {
+		return filePath;
+	}
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+	public InputStream getFile() {
+		return file;
+	}
+	public void setFile(InputStream file) {
+		this.file = file;
+	}
+	public File getResume() {
+		return resume;
+	}
+	public void setResume(File resume) {
+		this.resume = resume;
+	}
+	public Date getLastLogin() {
+		return lastLogin;
+	}
+	public void setLastLogin(Date lastLogin) {
+		this.lastLogin = lastLogin;
+	}
+	public Integer getNoOfVisits() {
+		return noOfVisits;
+	}
+	public void setNoOfVisits(Integer noOfVisits) {
+		this.noOfVisits = noOfVisits;
 	}
 	
 }

@@ -7,6 +7,7 @@ public class JobServiceRequest {
 	private String educationRequested;
 	private JobApplication postJobRequested;
 	private JobApplication applyJobRequested;
+	private AdminMail mailer;
 	
 	public Candidate getRequestedBy() {
 		return requestedBy;
@@ -37,6 +38,12 @@ public class JobServiceRequest {
 	}
 	public void setApplyJobRequested(JobApplication applyJobRequested) {
 		this.applyJobRequested = applyJobRequested;
+	}
+	public AdminMail getMailer() {
+		return mailer;
+	}
+	public void setMailer(AdminMail mailer) {
+		this.mailer = mailer;
 	}
 	
 }

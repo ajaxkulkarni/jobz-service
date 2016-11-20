@@ -10,6 +10,9 @@ import java.util.Scanner;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 
+import com.rns.web.jobz.service.bo.domain.Candidate;
+import com.rns.web.jobz.service.dao.domain.Candidates;
+
 public class CommonUtils {
 	
 	public static void closeSession(Session session) {
@@ -45,5 +48,19 @@ public class CommonUtils {
 	
 	public static String getStringValue(String value) {
 		return StringUtils.isNotEmpty(value) ? value : "";
+	}
+
+	public static String getFilePath(Candidates candidates) {
+		StringBuilder builder = new StringBuilder();
+		builder.append(JobzConstants.ROOT_PATH).append(candidates.getId());
+		return builder.toString();
+	}
+
+	public static String getFileName(String filePath) {
+		String[] tokens = StringUtils.split(filePath, ".");
+		if(tokens == null || tokens.length == 0) {
+			return null;
+		}
+		return tokens[tokens.length - 1];
 	}
 }

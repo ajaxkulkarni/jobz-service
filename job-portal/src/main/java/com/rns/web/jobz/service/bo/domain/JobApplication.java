@@ -27,6 +27,7 @@ public class JobApplication {
 	private List<Candidate> matchingCandidates;
 	private Integer noOfMatches;
 	private List<Candidate> interestCandidates;
+	private List<Candidate> shortlistedCandidates;
 	private Integer noOfInterests;
 	private Candidate currentCandidate;
 	private String interestShownByPoster;
@@ -217,6 +218,12 @@ public class JobApplication {
 	}
 	public void setExpired(boolean isExpired) {
 		this.isExpired = isExpired;
+	}
+	public List<Candidate> getShortlistedCandidates() {
+		return shortlistedCandidates;
+	}
+	public void setShortlistedCandidates(List<Candidate> shortlistedCandidates) {
+		this.shortlistedCandidates = shortlistedCandidates;
 	}
 	
 	

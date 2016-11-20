@@ -241,6 +241,8 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			put(MAIL_TYPE_GOT_SEEKER_CONTACT, "seeker_contact_received.html");
 			put(MAIL_TYPE_GOT_POSTER_CONTACT, "poster_contact_received.html");
 			put(MAIL_TYPE_NEW_JOB, "new_job.html");
+			put(MAIL_TYPE_FORGOT_PWD, "forgot_password.html");
+			put(MAIL_TYPE_POSTER_REJECTED, "poster_rejected.html");
 		}
 	});
 
@@ -253,6 +255,8 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			put(MAIL_TYPE_GOT_SEEKER_CONTACT, "Congrats! You've got a contact!");
 			put(MAIL_TYPE_GOT_POSTER_CONTACT, "Congrats! You've got a contact!");
 			put(MAIL_TYPE_NEW_JOB, "New Job application for you!");
+			put(MAIL_TYPE_FORGOT_PWD, "Talnote Forgot password");
+			put(MAIL_TYPE_POSTER_REJECTED, "Job Application Rejected");
 		}
 	});
 	

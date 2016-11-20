@@ -85,11 +85,13 @@ public class DTBConverter {
 		List<Candidate> profileInterests = new ArrayList<Candidate>();
 		List<Candidate> acceptedProfiles = new ArrayList<Candidate>();
 		List<Candidate> appliedProfiles = new ArrayList<Candidate>();
+		List<Candidate> rejectedProfiles = new ArrayList<Candidate>();
 		if (CollectionUtils.isNotEmpty(candidates.getPosts())) {
 			for (JobPost post : candidates.getPosts()) {
 				JobApplication application = getJobApplication(post);
 				List<Candidate> applicants = new ArrayList<Candidate>();
 				List<Candidate> interestCandidates = new ArrayList<Candidate>();
+				List<Candidate> shortlistedCandidates = new ArrayList<Candidate>();
 				for (CandidateApplication candi : post.getApplications()) {
 					if (candi.getCandidates() != null) {
 						Candidate candidate = getCandidateBasic(candi.getCandidates());
@@ -107,19 +109,22 @@ public class DTBConverter {
 							// candidate.setPosterInterested(JobzConstants.YES);
 							if (StringUtils.equals(JobzConstants.YES, candi.getInterestShownBySeeker())) {
 								acceptedProfiles.add(candidate);
+								shortlistedCandidates.add(candidate);
 							} else {
 								profileInterests.add(candidate);
 								interestCandidates.add(candidate);
 							}
+						} else if (StringUtils.equals(JobzConstants.NO, candi.getInterestShownByPoster()))  {
+							rejectedProfiles.add(candidate);
 						} else {
 							applicants.add(candidate);
 							appliedProfiles.add(candidate);
 						}
-
 					}
 				}
 				application.setInterestCandidates(interestCandidates);
 				application.setApplications(applicants);
+				application.setShortlistedCandidates(shortlistedCandidates);
 				List<Candidate> matchingCandidates = getMatchingCandidates(session, currentCandidate, application);
 				application.setMatchingCandidates(JobzUtils.sortByCompatibilityCandidates(matchingCandidates));
 				postedJobs.add(application);
@@ -162,6 +167,9 @@ public class DTBConverter {
 			return true;
 		}
 		if (isCandidatePresent(candidates, application.getInterestCandidates())) {
+			return true;
+		}
+		if (isCandidatePresent(candidates, application.getShortlistedCandidates())) {
 			return true;
 		}
 		return false;
@@ -252,6 +260,9 @@ public class DTBConverter {
 		currentCandidate.setSector(getSector(candidates.getSector()));
 		currentCandidate.setStatus(candidates.getStatus());
 		currentCandidate.setActivationCode(candidates.getActivationCode());
+		currentCandidate.setFilePath(candidates.getFilePath());
+		currentCandidate.setLastLogin(candidates.getLastLogin());
+		currentCandidate.setNoOfVisits(candidates.getNoOfVisits());
 		return currentCandidate;
 	}
 

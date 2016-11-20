@@ -14,5 +14,8 @@ public interface AdminBo {
 	List<JobApplication> getAllAcceptedJobs();
 
 	List<Candidate> getAllUsers();
+	
+	String sendToAll();
+	
 
 }

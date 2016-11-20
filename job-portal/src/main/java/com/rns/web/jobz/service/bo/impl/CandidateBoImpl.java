@@ -1,5 +1,9 @@
 package com.rns.web.jobz.service.bo.impl;
 
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashSet;
@@ -7,8 +11,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -39,6 +45,15 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 	
 	private ThreadPoolTaskExecutor executor;
 	
+
+	public ThreadPoolTaskExecutor getExecutor() {
+		return executor;
+	}
+
+	public void setExecutor(ThreadPoolTaskExecutor executor) {
+		this.executor = executor;
+	}
+
 
 	@Override
 	public String registerCandidate(Candidate candidate) {
@@ -255,7 +270,11 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 				} else if (StringUtils.equals(YES,candidateApplication.getInterestShownByPoster())) {
 					jobzMailUtil.setType(MAIL_TYPE_POSTER_APPLY);
 					executor.execute(jobzMailUtil);
-				} else {
+				} else if(StringUtils.equals(NO,candidateApplication.getInterestShownByPoster())) { 
+					jobzMailUtil.setType(MAIL_TYPE_POSTER_REJECTED);
+					executor.execute(jobzMailUtil);
+				}
+				else {
 					jobzMailUtil.setType(MAIL_TYPE_SEEKER_APPLY);
 					executor.execute(jobzMailUtil);
 				}
@@ -282,6 +301,17 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			Candidates candidates = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
 			if(candidates != null) {
 				currentCandidate = DTBConverter.getCandidate(candidates, session);
+				if(candidates.getLastLogin() == null || !DateUtils.isSameDay(new Date(), candidates.getLastLogin())) {
+					Transaction tx = session.beginTransaction();
+					candidates.setLastLogin(new Date());
+					if(candidates.getNoOfVisits() == null) {
+						candidates.setNoOfVisits(1);
+					} else {
+						candidates.setNoOfVisits(candidates.getNoOfVisits() + 1);
+					}
+					tx.commit();
+				}
+				
 			}
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
@@ -431,15 +461,95 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 	}
 
 
-
-	public ThreadPoolTaskExecutor getExecutor() {
-		return executor;
+	@Override
+	public String forgotPassword(Candidate candidate) {
+		if(candidate == null || StringUtils.isEmpty(candidate.getEmail())) {
+			return ERROR_INCOMPLETE_DETAILS;
+		}
+		Session session = null;
+		String result = ERROR_EMAIL_DOES_NOT_EXIST;
+		try {
+			session = this.sessionFactory.openSession();
+			Candidates candidates = new CandidateDaoImpl().getCandidateByEmail(candidate.getEmail(), session);
+			if(candidates != null) {
+				JobzMailUtil mailUtil = new JobzMailUtil(MAIL_TYPE_FORGOT_PWD);
+				mailUtil.setCandidate(DTBConverter.getCandidateBasic(candidates));
+				executor.execute(mailUtil);
+				result = RESPONSE_OK;
+			}
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+			result = ERROR_IN_PROCESSING;
+		} finally {
+			CommonUtils.closeSession(session);
+		}
+		return result;
 	}
+	
 
-
-
-	public void setExecutor(ThreadPoolTaskExecutor executor) {
-		this.executor = executor;
+	@Override
+	public String uploadResume(Candidate candidate) {
+		if(candidate == null || StringUtils.isEmpty(candidate.getEmail()) || candidate.getFile() == null) {
+			return ERROR_INVALID_FILE;
+		}
+		Session session = null;
+		String result = ERROR_IN_PROCESSING;
+		BufferedOutputStream stream = null;
+		try {
+			session = this.sessionFactory.openSession();
+			Candidates candidates = new CandidateDaoImpl().getCandidateByEmail(candidate.getEmail(), session);
+			if(candidates != null) {
+				String filePath = CommonUtils.getFilePath(candidates);
+				File dir = new File(filePath);
+				dir.mkdirs();
+				String actualFilePath = filePath + "/" + candidate.getFilePath();
+				File document = new File(actualFilePath);
+				stream = new BufferedOutputStream(new FileOutputStream(document));
+				stream.write(IOUtils.toByteArray(candidate.getFile()));
+				Transaction tx = session.beginTransaction();
+				candidates.setFilePath(actualFilePath);
+				tx.commit();
+				result = RESPONSE_OK;
+			}
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+		} finally {
+			CommonUtils.closeSession(session);
+			if(stream != null) {
+				try {
+					stream.close();
+				} catch (IOException e) {
+				}
+			}
+		}
+		return result;
 	}
+	
+	@Override
+	public Candidate downloadResume(Candidate candidate) {
+		if(candidate == null || StringUtils.isEmpty(candidate.getEmail())) {
+			return null;
+		}
+		Session session = null;
+		Candidate currentCandidate = null;
+		try {
+			session = this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			Candidates candidates = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
+			if(candidates != null && StringUtils.isNotEmpty(candidates.getFilePath())) {
+				File file = new File(candidates.getFilePath());
+				currentCandidate = DTBConverter.getCandidateBasic(candidates);
+				currentCandidate.setResume(file);
+				currentCandidate.setFilePath(currentCandidate.getName() + "." + CommonUtils.getFileName(candidates.getFilePath()));
+			}
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+		} finally {
+			CommonUtils.closeSession(session);
+		}
+		return currentCandidate;
+	}
+	
+	
 
 }

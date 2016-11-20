@@ -3,6 +3,7 @@ package com.rns.web.jobz.service.dao.domain;
 import static javax.persistence.GenerationType.IDENTITY;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -43,6 +44,9 @@ public class Candidates {
 	private Integer sector;
 	private String status;
 	private String activationCode;
+	private String filePath;
+	private Date lastLogin;
+	private Integer noOfVisits;
 
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
@@ -210,5 +214,32 @@ public class Candidates {
 
 	public void setActivationCode(String activationCode) {
 		this.activationCode = activationCode;
+	}
+
+	@Column(name = "file_path")
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+
+	@Column(name = "last_login")
+	public Date getLastLogin() {
+		return lastLogin;
+	}
+
+	public void setLastLogin(Date lastLogin) {
+		this.lastLogin = lastLogin;
+	}
+
+	@Column(name = "no_of_visits")
+	public Integer getNoOfVisits() {
+		return noOfVisits;
+	}
+
+	public void setNoOfVisits(Integer noOfVisits) {
+		this.noOfVisits = noOfVisits;
 	}
 }
