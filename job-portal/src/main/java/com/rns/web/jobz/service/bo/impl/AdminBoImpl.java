@@ -103,4 +103,10 @@ public class AdminBoImpl implements AdminBo {
 		return candidates;
 	}
 
+	@Override
+	public String sendToAll() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
