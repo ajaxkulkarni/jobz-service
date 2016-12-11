@@ -288,6 +288,12 @@ public class DTBConverter {
 		if(application.getExpiryDate() != null && application.getExpiryDate().compareTo(new Date()) < 0 ) { 
 			application.setExpired(true);
 		}
+		if(StringUtils.isNotBlank(post.getPocEmail())) {
+			Candidate poc = new Candidate();
+			poc.setEmail(post.getPocEmail());
+			poc.setPhone(poc.getPhone());
+			application.setPoc(poc);
+		}
 		return application;
 	}
 

@@ -27,6 +27,7 @@ public class CandidateApplication {
 	private Candidates candidates;
 	private JobPost jobPost;
 	
+	
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
 	@Column(name = "id", unique = true, nullable = false)
@@ -80,5 +81,6 @@ public class CandidateApplication {
 	public void setJobPost(JobPost jobPost) {
 		this.jobPost = jobPost;
 	}
+	
 	
 }

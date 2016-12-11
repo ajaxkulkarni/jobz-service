@@ -44,6 +44,8 @@ public class JobPost {
 	private Set<Education> education = new HashSet<Education>(0);
 	private Set<CandidateApplication> applications = new HashSet<CandidateApplication>();
 	private Integer sector;
+	private String pocEmail;
+	private String pocPhone;
 
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
@@ -212,5 +214,22 @@ public class JobPost {
 	public void setSector(Integer sector) {
 		this.sector = sector;
 	}
+	
+	@Column(name = "poc_email")
+	public String getPocEmail() {
+		return pocEmail;
+	}
+	public void setPocEmail(String pocEmail) {
+		this.pocEmail = pocEmail;
+	}
+	
+	@Column(name = "poc_phone")
+	public String getPocPhone() {
+		return pocPhone;
+	}
+	public void setPocPhone(String pocPhone) {
+		this.pocPhone = pocPhone;
+	}
+	
 	
 }

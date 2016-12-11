@@ -37,6 +37,8 @@ public class JobApplication {
 	private String expiryDateString;
 	private String postedDateString;
 	private boolean isExpired;
+	private Candidate poc;
+	private boolean attachCv;
 	
 	public Integer getId() {
 		return id;
@@ -224,6 +226,18 @@ public class JobApplication {
 	}
 	public void setShortlistedCandidates(List<Candidate> shortlistedCandidates) {
 		this.shortlistedCandidates = shortlistedCandidates;
+	}
+	public Candidate getPoc() {
+		return poc;
+	}
+	public void setPoc(Candidate poc) {
+		this.poc = poc;
+	}
+	public boolean isAttachCv() {
+		return attachCv;
+	}
+	public void setAttachCv(boolean attachCv) {
+		this.attachCv = attachCv;
 	}
 	
 	

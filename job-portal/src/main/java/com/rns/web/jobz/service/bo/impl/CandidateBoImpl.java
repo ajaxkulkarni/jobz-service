@@ -210,6 +210,12 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 				mailer.setCandidates(DTBConverter.getMatchingCandidates(session, application.getPostedBy(), jobApplication));
 				mailer.setJobApplication(jobApplication);
 				executor.execute(mailer);
+				if(BTDConverter.isPoc(application)) {
+					JobzMailUtil pocAlert = new JobzMailUtil(MAIL_TYPE_NEW_JOB_POC);
+					application.setPostedBy(application.getPoc());
+					pocAlert.setJobApplication(application);
+					executor.execute(pocAlert);
+				}
 			}
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
@@ -275,7 +281,14 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 					executor.execute(jobzMailUtil);
 				}
 				else {
+					if(application.isAttachCv() && StringUtils.isNotBlank(candidateByEmail.getFilePath())) {
+						 jobzMailUtil.getCandidate().setResume(new File(candidateByEmail.getFilePath()));
+						 jobzMailUtil.getCandidate().setFilePath(candidateByEmail.getName() + "_Resume"  +"." + CommonUtils.getFileName(candidateByEmail.getFilePath()));
+					}
 					jobzMailUtil.setType(MAIL_TYPE_SEEKER_APPLY);
+					if(BTDConverter.isPoc(jobApplication)) {
+						jobApplication.setPostedBy(jobApplication.getPoc());
+					}
 					executor.execute(jobzMailUtil);
 				}
 			}

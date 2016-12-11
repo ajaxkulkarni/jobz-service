@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.rns.web.jobz.service.bo.domain.Candidate;
 import com.rns.web.jobz.service.bo.domain.JobApplication;
@@ -115,6 +116,14 @@ public class BTDConverter {
 		if (application.getSector() != null) {
 			post.setSector(application.getSector().getId());
 		}
+		if(isPoc(application)) {
+			post.setPocEmail(application.getPoc().getEmail());
+			post.setPocPhone(application.getPoc().getPhone());
+		}
+	}
+
+	public static boolean isPoc(JobApplication application) {
+		return application.getPoc() != null && StringUtils.isNotBlank(application.getPoc().getEmail());
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.rns.web.jobz.service.util;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -11,13 +12,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.activation.DataHandler;
+import javax.activation.DataSource;
+import javax.activation.FileDataSource;
+import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.PasswordAuthentication;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -73,6 +81,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			if(CollectionUtils.isNotEmpty(candidates)) {
 				for(Candidate c: candidates) {
 					candidate = c;
+					//System.out.println("Considering :" + c.getEmail() + " Compat:" + c.getCompatibility());
 					if(BigDecimal.TEN.compareTo(c.getCompatibility()) > 0) {
 						continue;
 					}
@@ -83,7 +92,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			} else {
 				prepareMailContent(message);
 				Transport.send(message);
-				if(StringUtils.isNotEmpty(candidate.getEmail())) {
+				if(candidate != null && StringUtils.isNotEmpty(candidate.getEmail())) {
 					LoggingUtil.logMessage("Mail " + type + " sent to :" + candidate.getEmail());
 				}
 			}
@@ -167,6 +176,16 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			}
 			message.setContent(result, "text/html");
 			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(getEmails(mailchain)));
+			if(candidate.getResume() != null) {
+				try {
+					result = StringUtils.replace(result, "{resume}", "Also, please find attached the Resume of the applicant.");
+					attachCv(message, candidate, result);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			} else {
+				result = StringUtils.replace(result, "{resume}", "");
+			}
 			return result;
 
 		} catch (FileNotFoundException e) {
@@ -213,6 +232,20 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 		message.setSubject(MAIL_SUBJECTS.get(type));
 		return CommonUtils.readFile(contentPath);
 	}
+	
+	private void attachCv(Message message, Candidate candidate, String result) throws MessagingException, IOException {
+		Multipart mp = new MimeMultipart();
+		BodyPart fileBody = new MimeBodyPart();
+		DataSource source = new FileDataSource(candidate.getResume());
+		fileBody.setDataHandler(new DataHandler(source));
+		fileBody.setFileName(candidate.getFilePath());
+		BodyPart messsageBody = new MimeBodyPart();
+		messsageBody.setText(result);
+		messsageBody.setContent(result, "text/html");
+		mp.addBodyPart(fileBody);
+		mp.addBodyPart(messsageBody);
+		message.setContent(mp);
+	}
 
 	public Candidate getCandidate() {
 		return candidate;
@@ -243,6 +276,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			put(MAIL_TYPE_NEW_JOB, "new_job.html");
 			put(MAIL_TYPE_FORGOT_PWD, "forgot_password.html");
 			put(MAIL_TYPE_POSTER_REJECTED, "poster_rejected.html");
+			put(MAIL_TYPE_NEW_JOB_POC, "new_job_poc.html");
 		}
 	});
 
@@ -257,6 +291,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			put(MAIL_TYPE_NEW_JOB, "New Job application for you!");
 			put(MAIL_TYPE_FORGOT_PWD, "Talnote Forgot password");
 			put(MAIL_TYPE_POSTER_REJECTED, "Job Application Rejected");
+			put(MAIL_TYPE_NEW_JOB_POC, "Job posted for you!");
 		}
 	});
 	
