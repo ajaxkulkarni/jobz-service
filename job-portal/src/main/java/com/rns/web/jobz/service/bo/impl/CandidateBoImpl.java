@@ -261,6 +261,9 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 				
 				JobzMailUtil jobzMailUtil = new JobzMailUtil();
 				JobApplication jobApplication = DTBConverter.getJobApplication(candidateApplication);
+				if(BTDConverter.isPoc(jobApplication)) {
+					jobApplication.setPostedBy(jobApplication.getPoc());
+				}
 				BigDecimal compatibility = JobzUtils.calculateCompatibility(jobApplication.getCurrentCandidate(), jobApplication);
 				jobApplication.setCompatibility(compatibility);
 				jobzMailUtil.setJobApplication(jobApplication);
@@ -288,6 +291,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 					jobzMailUtil.setType(MAIL_TYPE_SEEKER_APPLY);
 					if(BTDConverter.isPoc(jobApplication)) {
 						jobApplication.setPostedBy(jobApplication.getPoc());
+						jobApplication.setAttachCv(application.isAttachCv());
 					}
 					executor.execute(jobzMailUtil);
 				}

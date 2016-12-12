@@ -14,6 +14,7 @@ import com.rns.web.jobz.service.bo.api.AdminBo;
 import com.rns.web.jobz.service.bo.domain.AdminResponse;
 import com.rns.web.jobz.service.bo.domain.JobServiceRequest;
 import com.rns.web.jobz.service.bo.domain.JobServiceResponse;
+import com.rns.web.jobz.service.util.CommonUtils;
 import com.rns.web.jobz.service.util.JobzConstants;
 import com.rns.web.jobz.service.util.LoggingUtil;
 
@@ -119,7 +120,8 @@ public class AdminService implements JobzConstants {
 		LoggingUtil.logObject("Admin send to all Request :", request);
 		JobServiceResponse response = initResponse();
 		try {
-			adminBo.sendToAll();
+			response.setResponseText(adminBo.sendToAll(request.getMailer()));
+			CommonUtils.checkForError(response);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setStatus(-999);

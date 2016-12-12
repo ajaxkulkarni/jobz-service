@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 
 import com.rns.web.jobz.service.bo.domain.Candidate;
+import com.rns.web.jobz.service.bo.domain.JobServiceResponse;
 import com.rns.web.jobz.service.dao.domain.Candidates;
 
 public class CommonUtils {
@@ -62,6 +63,12 @@ public class CommonUtils {
 			return null;
 		}
 		return tokens[tokens.length - 1];
+	}
+	
+	public static void checkForError(JobServiceResponse response) {
+		if (!JobzConstants.RESPONSE_OK.equals(response.getResponseText())) {
+			response.setStatus(-111);
+		}
 	}
 	
 }

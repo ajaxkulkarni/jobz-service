@@ -150,6 +150,26 @@ public class JobzUtils {
 		});
 		return applications;
 	}
+	
+	public static List<JobApplication> sortById(List<JobApplication> applications) {
+		if(CollectionUtils.isEmpty(applications)) {
+			return applications;
+		}
+		Collections.sort(applications, new Comparator<JobApplication>() {
+
+			public int compare(JobApplication j1, JobApplication j2) {
+				if(j1.getId() == null) {
+					return -1;
+				}
+				if(j2.getId() == null) {
+					return 1;
+				}
+				return (j2.getId().intValue() > j1.getId().intValue()) ? 1: -1 ;
+			}
+			
+		});
+		return applications;
+	}
 
 	public static String generateActivationCode(Candidate candidate) {
 		if(candidate == null) {

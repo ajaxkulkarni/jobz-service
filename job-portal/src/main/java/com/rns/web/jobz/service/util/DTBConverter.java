@@ -47,6 +47,9 @@ public class DTBConverter {
 				if(jobApplication == null) {
 					continue;
 				}
+				if(BTDConverter.isPoc(jobApplication)) {
+					jobApplication.setPostedBy(jobApplication.getPoc());
+				}
 				BigDecimal compatibility = JobzUtils.calculateCompatibility(currentCandidate, jobApplication);
 				jobApplication.setCompatibility(compatibility);
 				if (StringUtils.equals(JobzConstants.YES, application.getInterestShownByPoster())) {
@@ -87,56 +90,66 @@ public class DTBConverter {
 		List<Candidate> appliedProfiles = new ArrayList<Candidate>();
 		List<Candidate> rejectedProfiles = new ArrayList<Candidate>();
 		if (CollectionUtils.isNotEmpty(candidates.getPosts())) {
-			for (JobPost post : candidates.getPosts()) {
-				JobApplication application = getJobApplication(post);
-				List<Candidate> applicants = new ArrayList<Candidate>();
-				List<Candidate> interestCandidates = new ArrayList<Candidate>();
-				List<Candidate> shortlistedCandidates = new ArrayList<Candidate>();
-				for (CandidateApplication candi : post.getApplications()) {
-					if (candi.getCandidates() != null) {
-						Candidate candidate = getCandidateBasic(candi.getCandidates());
-						BigDecimal compatibility = JobzUtils.calculateCompatibility(candidate, application);
-						candidate.setCompatibility(compatibility);
-						candidate.setAppliedDate(candi.getAppliedDate());
-						candidate.setSeekerInterested(candi.getInterestShownBySeeker());
-						candidate.setPosterInterested(candi.getInterestShownByPoster());
-						JobApplication shortListedFor = new JobApplication();
-						shortListedFor.setId(application.getId());
-						shortListedFor.setJobTitle(application.getJobTitle());
-						shortListedFor.setCompanyName(application.getCompanyName());
-						candidate.setApplication(shortListedFor);
-						if (StringUtils.equals(JobzConstants.YES, candi.getInterestShownByPoster())) {
-							// candidate.setPosterInterested(JobzConstants.YES);
-							if (StringUtils.equals(JobzConstants.YES, candi.getInterestShownBySeeker())) {
-								acceptedProfiles.add(candidate);
-								shortlistedCandidates.add(candidate);
-							} else {
-								profileInterests.add(candidate);
-								interestCandidates.add(candidate);
-							}
-						} else if (StringUtils.equals(JobzConstants.NO, candi.getInterestShownByPoster()))  {
-							rejectedProfiles.add(candidate);
-						} else {
-							applicants.add(candidate);
-							appliedProfiles.add(candidate);
-						}
-					}
-				}
-				application.setInterestCandidates(interestCandidates);
-				application.setApplications(applicants);
-				application.setShortlistedCandidates(shortlistedCandidates);
-				List<Candidate> matchingCandidates = getMatchingCandidates(session, currentCandidate, application);
-				application.setMatchingCandidates(JobzUtils.sortByCompatibilityCandidates(matchingCandidates));
-				postedJobs.add(application);
-			}
-
+			ArrayList<JobPost> jobPosts = new ArrayList<JobPost>(candidates.getPosts());
+			populatePostedJobs(jobPosts, session, currentCandidate, postedJobs, profileInterests, acceptedProfiles, appliedProfiles, rejectedProfiles);
 		}
 
+		List<JobPost> pocJobPosts = new CandidateDaoImpl().getAllPocJobs(candidates.getEmail(), session);
+		if(CollectionUtils.isNotEmpty(pocJobPosts)) {
+			populatePostedJobs(pocJobPosts, session, currentCandidate, postedJobs, profileInterests, acceptedProfiles, appliedProfiles, rejectedProfiles);
+		}
+		JobzUtils.sortById(postedJobs);
 		currentCandidate.setAcceptedProfiles(acceptedProfiles);
 		currentCandidate.setProfileInterests(profileInterests);
 		currentCandidate.setInterestsReceived(appliedProfiles);
 		currentCandidate.setPostedJobs(postedJobs);
 		// JobzUtils.sortByCompatibility(postedJobs);
+	}
+
+	private static void populatePostedJobs(List<JobPost> arrayList, Session session, Candidate currentCandidate, List<JobApplication> postedJobs, List<Candidate> profileInterests,
+			List<Candidate> acceptedProfiles, List<Candidate> appliedProfiles, List<Candidate> rejectedProfiles) {
+		for (JobPost post : arrayList) {
+			JobApplication application = getJobApplication(post);
+			List<Candidate> applicants = new ArrayList<Candidate>();
+			List<Candidate> interestCandidates = new ArrayList<Candidate>();
+			List<Candidate> shortlistedCandidates = new ArrayList<Candidate>();
+			for (CandidateApplication candi : post.getApplications()) {
+				if (candi.getCandidates() != null) {
+					Candidate candidate = getCandidateBasic(candi.getCandidates());
+					BigDecimal compatibility = JobzUtils.calculateCompatibility(candidate, application);
+					candidate.setCompatibility(compatibility);
+					candidate.setAppliedDate(candi.getAppliedDate());
+					candidate.setSeekerInterested(candi.getInterestShownBySeeker());
+					candidate.setPosterInterested(candi.getInterestShownByPoster());
+					JobApplication shortListedFor = new JobApplication();
+					shortListedFor.setId(application.getId());
+					shortListedFor.setJobTitle(application.getJobTitle());
+					shortListedFor.setCompanyName(application.getCompanyName());
+					candidate.setApplication(shortListedFor);
+					if (StringUtils.equals(JobzConstants.YES, candi.getInterestShownByPoster())) {
+						// candidate.setPosterInterested(JobzConstants.YES);
+						if (StringUtils.equals(JobzConstants.YES, candi.getInterestShownBySeeker())) {
+							acceptedProfiles.add(candidate);
+							shortlistedCandidates.add(candidate);
+						} else {
+							profileInterests.add(candidate);
+							interestCandidates.add(candidate);
+						}
+					} else if (StringUtils.equals(JobzConstants.NO, candi.getInterestShownByPoster()))  {
+						rejectedProfiles.add(candidate);
+					} else {
+						applicants.add(candidate);
+						appliedProfiles.add(candidate);
+					}
+				}
+			}
+			application.setInterestCandidates(interestCandidates);
+			application.setApplications(applicants);
+			application.setShortlistedCandidates(shortlistedCandidates);
+			List<Candidate> matchingCandidates = getMatchingCandidates(session, currentCandidate, application);
+			application.setMatchingCandidates(JobzUtils.sortByCompatibilityCandidates(matchingCandidates));
+			postedJobs.add(application);
+		}
 	}
 
 	public static List<Candidate> getMatchingCandidates(Session session, Candidate currentCandidate, JobApplication application) {
@@ -198,6 +211,7 @@ public class DTBConverter {
 				if(application == null) {
 					continue;
 				}
+				
 				application.setPostedBy(DTBConverter.getCandidateBasic(post.getPostedBy()));
 				BigDecimal compatibility = JobzUtils.calculateCompatibility(currentCandidate, application);
 				application.setCompatibility(compatibility);

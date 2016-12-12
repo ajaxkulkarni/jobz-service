@@ -7,10 +7,10 @@ import java.util.Map;
 public interface JobzConstants {
 	
 	//Dev
-	String ROOT_PATH = "F:/Resoneuronance/JobPortal/Uploads/";
+	//String ROOT_PATH = "F:/Resoneuronance/JobPortal/Uploads/";
 	
 	//Prod
-	
+	String ROOT_PATH = "/home/talnote/Uploads/Resumes/";
 	
 	String RESPONSE_OK = "OK";
 	String ERROR_INVALID_LOGIN_DETAILS = "Invalid login details!";
@@ -58,10 +58,11 @@ public interface JobzConstants {
 	String MAIL_TYPE_FORGOT_PWD = "forgotPassword";
 	String MAIL_TYPE_POSTER_REJECTED = "posterRejected";
 	String MAIL_TYPE_NEW_JOB_POC = "newJobPoc";
+	String MAIL_TYPE_GENERIC = "genericMail";
 	
 	String[] SEEKER_MAIL_LIST = {MAIL_TYPE_POSTER_APPLY, MAIL_TYPE_GOT_POSTER_CONTACT, MAIL_TYPE_NEW_JOB, MAIL_TYPE_ACTIVATION, 
-			MAIL_TYPE_REGISTRATION, MAIL_TYPE_FORGOT_PWD, MAIL_TYPE_POSTER_REJECTED};
-	String[] POSTER_MAIL_LIST = {MAIL_TYPE_SEEKER_APPLY, MAIL_TYPE_GOT_SEEKER_CONTACT, MAIL_TYPE_NEW_JOB_POC};
+			MAIL_TYPE_REGISTRATION, MAIL_TYPE_FORGOT_PWD, MAIL_TYPE_POSTER_REJECTED, MAIL_TYPE_GENERIC};
+	String[] POSTER_MAIL_LIST = {MAIL_TYPE_SEEKER_APPLY, MAIL_TYPE_GOT_SEEKER_CONTACT, MAIL_TYPE_NEW_JOB_POC, MAIL_TYPE_GENERIC};
 	
 
 }

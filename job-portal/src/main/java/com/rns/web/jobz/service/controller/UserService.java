@@ -22,6 +22,7 @@ import com.rns.web.jobz.service.bo.domain.JobServiceRequest;
 import com.rns.web.jobz.service.bo.domain.JobServiceResponse;
 import com.rns.web.jobz.service.bo.domain.JobSkill;
 import com.rns.web.jobz.service.bo.domain.Qualification;
+import com.rns.web.jobz.service.util.CommonUtils;
 import com.rns.web.jobz.service.util.JobzConstants;
 import com.rns.web.jobz.service.util.LoggingUtil;
 import com.sun.jersey.core.header.FormDataContentDisposition;
@@ -87,7 +88,7 @@ public class UserService implements JobzConstants {
 		JobServiceResponse response = initResponse();
 		try {
 			response.setResponseText(candidateBo.registerCandidate(request.getRequestedBy()));
-			checkForError(response);
+			CommonUtils.checkForError(response);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setStatus(-999);
@@ -136,7 +137,7 @@ public class UserService implements JobzConstants {
 				response.setResponseText(ERROR_INVALID_LOGIN_DETAILS);
 				response.setStatus(-111);
 			}
-			// checkForError(response);
+			// CommonUtils.checkForError(response);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setStatus(-999);
@@ -146,11 +147,6 @@ public class UserService implements JobzConstants {
 		return response;
 	}
 
-	private void checkForError(JobServiceResponse response) {
-		if (!RESPONSE_OK.equals(response.getResponseText())) {
-			response.setStatus(-111);
-		}
-	}
 
 	@POST
 	@Path("/updateUser")
@@ -162,7 +158,7 @@ public class UserService implements JobzConstants {
 		JobServiceResponse response = initResponse();
 		try {
 			response.setResponseText(candidateBo.updateCandidate(request.getRequestedBy()));
-			checkForError(response);
+			CommonUtils.checkForError(response);
 		} catch (Exception e) {
 			e.printStackTrace();
 			response.setStatus(-999);
@@ -202,7 +198,7 @@ public class UserService implements JobzConstants {
 		JobServiceResponse response = initResponse();
 		try {
 			response.setResponseText(candidateBo.postNewJob(request.getPostJobRequested()));
-			checkForError(response);
+			CommonUtils.checkForError(response);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -223,7 +219,7 @@ public class UserService implements JobzConstants {
 		JobServiceResponse response = initResponse();
 		try {
 			response.setResponseText(candidateBo.applyForJob(request.getApplyJobRequested()));
-			checkForError(response);
+			CommonUtils.checkForError(response);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -244,7 +240,7 @@ public class UserService implements JobzConstants {
 		JobServiceResponse response = initResponse();
 		try {
 			response.setResponseText(candidateBo.updateJob(request.getPostJobRequested()));
-			checkForError(response);
+			CommonUtils.checkForError(response);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -265,7 +261,7 @@ public class UserService implements JobzConstants {
 		JobServiceResponse response = initResponse();
 		try {
 			response.setResponseText(candidateBo.deleteJob(request.getPostJobRequested()));
-			checkForError(response);
+			CommonUtils.checkForError(response);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -287,7 +283,7 @@ public class UserService implements JobzConstants {
 		try {
 			String result = candidateBo.forgotPassword(request.getRequestedBy());
 			response.setResponseText(result);
-			checkForError(response);
+			CommonUtils.checkForError(response);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -316,7 +312,7 @@ public class UserService implements JobzConstants {
 			candidate.setFile(uploadedInputStream);
 			String result = candidateBo.uploadResume(candidate);
 			response.setResponseText(result);
-			checkForError(response);
+			CommonUtils.checkForError(response);
 
 		} catch (Exception e) {
 			e.printStackTrace();

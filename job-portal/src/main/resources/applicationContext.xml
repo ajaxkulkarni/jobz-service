@@ -17,6 +17,7 @@
 	
 	<bean id="adminBo" class="com.rns.web.jobz.service.bo.impl.AdminBoImpl">
 		<property name="sessionFactory" ref="hibernate4AnnotatedSessionFactory" />
+		<property name="executor" ref="executor" />
 	</bean>
 	
 	<bean id="executor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">

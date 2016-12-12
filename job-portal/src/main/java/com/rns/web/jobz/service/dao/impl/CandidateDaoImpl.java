@@ -107,4 +107,10 @@ public class CandidateDaoImpl {
 		return applications.get(0);
 	}
 	
+	public List<JobPost> getAllPocJobs(String candidateEmail, Session session) {
+		Query query = session.createQuery("from JobPost where pocEmail=:candidate_email order by ID DESC");
+		query.setString("candidate_email", candidateEmail);
+		return query.list();
+	}
+	
 }

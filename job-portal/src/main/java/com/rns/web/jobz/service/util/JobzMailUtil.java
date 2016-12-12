@@ -29,6 +29,7 @@ import javax.mail.internet.MimeMultipart;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import com.rns.web.jobz.service.bo.domain.Candidate;
 import com.rns.web.jobz.service.bo.domain.JobApplication;
@@ -36,21 +37,31 @@ import com.rns.web.jobz.service.bo.domain.JobApplication;
 public class JobzMailUtil implements Runnable, JobzConstants {
 
 	private static final String MAIL_ID = "contact@talnote.com";
-	//private static final String MAIL_ID = "support@talnote.com";
-	//private static final String MAIL_ID = "ajinkyashiva@gmail.com";
+	// private static final String MAIL_ID = "support@talnote.com";
+	// private static final String MAIL_ID = "ajinkyashiva@gmail.com";
 	private static final String MAIL_AUTH = "true";
 	private static final String MAIL_HOST = "support.tiffeat.com";
-	//private static final String MAIL_HOST = "smtp.gmail.com";
-	//private static final String MAIL_HOST = "smtp-relay.gmail.com";
+	// private static final String MAIL_HOST = "smtp.gmail.com";
+	// private static final String MAIL_HOST = "smtp-relay.gmail.com";
 	private static final String MAIL_PORT = "25";
-	private static final String MAIL_PASSWORD = "contact_talnote2016";
-	//private static final String MAIL_PASSWORD = "support2016";
+	private static final String MAIL_PASSWORD = "contact2016";
+	// private static final String MAIL_PASSWORD = "support2016";
 
 	private String type;
 	private Candidate candidate;
 	private JobApplication jobApplication;
 	private List<Candidate> candidates;
-	
+	private String messageText;
+	private String mailSubject;
+
+	public void setMessageText(String messageText) {
+		this.messageText = messageText;
+	}
+
+	public void setMailSubject(String mailSubject) {
+		this.mailSubject = mailSubject;
+	}
+
 	public List<Candidate> getCandidates() {
 		return candidates;
 	}
@@ -62,12 +73,12 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 	public void setType(String type) {
 		this.type = type;
 	}
-	
+
 	public JobzMailUtil(String mailType) {
 		this.type = mailType;
 		this.candidates = new ArrayList<Candidate>();
 	}
-	
+
 	public JobzMailUtil() {
 	}
 
@@ -78,25 +89,29 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 		try {
 			Message message = new MimeMessage(session);
 			message.setFrom(new InternetAddress(MAIL_ID, "Talnote"));
-			if(CollectionUtils.isNotEmpty(candidates)) {
-				for(Candidate c: candidates) {
+			if (CollectionUtils.isNotEmpty(candidates)) {
+				for (Candidate c : candidates) {
 					candidate = c;
-					//System.out.println("Considering :" + c.getEmail() + " Compat:" + c.getCompatibility());
-					if(BigDecimal.TEN.compareTo(c.getCompatibility()) > 0) {
+					if(StringUtils.isBlank(c.getEmail())) {
 						continue;
 					}
-					jobApplication.setCompatibility(c.getCompatibility());
+					if (c.getCompatibility() != null && BigDecimal.TEN.compareTo(c.getCompatibility()) > 0) {
+						continue;
+					}
+					if (jobApplication != null) {
+						jobApplication.setCompatibility(c.getCompatibility());
+					}
+					System.out.println("Considering :" + c.getEmail());
 					prepareMailContent(message);
 					Transport.send(message);
 				}
 			} else {
 				prepareMailContent(message);
 				Transport.send(message);
-				if(candidate != null && StringUtils.isNotEmpty(candidate.getEmail())) {
+				if (candidate != null && StringUtils.isNotEmpty(candidate.getEmail())) {
 					LoggingUtil.logMessage("Mail " + type + " sent to :" + candidate.getEmail());
 				}
 			}
-			
 
 		} catch (MessagingException e) {
 			e.printStackTrace();
@@ -105,7 +120,6 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 		}
 	}
 
-	
 	private static Session prepareMailSession() {
 		Properties props = new Properties();
 
@@ -127,10 +141,10 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 	private String prepareMailContent(Message message) {
 
 		try {
-
+			boolean attachCv = false;
 			String result = readMailContent(message);
 			List<Candidate> mailchain = new ArrayList<Candidate>();
-			if(candidate != null) {
+			if (candidate != null) {
 				result = StringUtils.replace(result, "{name}", CommonUtils.getStringValue(candidate.getName()));
 				result = StringUtils.replace(result, "{candidateEmail}", CommonUtils.getStringValue(candidate.getEmail()));
 				result = StringUtils.replace(result, "{candidatePhone}", CommonUtils.getStringValue(candidate.getPhone()));
@@ -138,54 +152,60 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 				result = StringUtils.replace(result, "{code}", CommonUtils.getStringValue(candidate.getActivationCode()));
 				result = StringUtils.replace(result, "{designation}", CommonUtils.getStringValue((candidate.getDesignation())));
 				result = StringUtils.replace(result, "{company}", CommonUtils.getStringValue(candidate.getCompany()));
-				if(candidate.getExperience() != null) {
+				if (candidate.getExperience() != null) {
 					result = StringUtils.replace(result, "{experience}", candidate.getExperience().toString());
 				} else {
 					result = StringUtils.replace(result, "{experience}", "");
 				}
 				result = StringUtils.replace(result, "{password}", CommonUtils.getStringValue(candidate.getPassword()));
-				if(MAIL_TYPE_ACTIVATION.equals(type)) {
+				if (MAIL_TYPE_ACTIVATION.equals(type)) {
 					result = StringUtils.replace(result, "{link}", prepareActivationMailContent());
 				}
-				if(Arrays.asList(SEEKER_MAIL_LIST).contains(type)) {
+				if (Arrays.asList(SEEKER_MAIL_LIST).contains(type)) {
 					mailchain.add(candidate);
 				}
+				if (candidate.getResume() != null && jobApplication != null && jobApplication.isAttachCv()) {
+					result = StringUtils.replace(result, "{resume}", "Also, please find attached the Resume of the applicant.");
+					attachCv = true;
+				} else {
+					result = StringUtils.replace(result, "{resume}", "");
+				}
 			}
-			if(jobApplication != null) {
+			if (jobApplication != null) {
 				Candidate poster = jobApplication.getPostedBy();
-				if(Arrays.asList(POSTER_MAIL_LIST).contains(type)) {
+				if (Arrays.asList(POSTER_MAIL_LIST).contains(type)) {
 					mailchain.add(poster);
 				}
-				if(poster != null) {
+				if (poster != null) {
 					result = StringUtils.replace(result, "{posterName}", CommonUtils.getStringValue(poster.getName()));
 					result = StringUtils.replace(result, "{posterEmail}", CommonUtils.getStringValue(poster.getEmail()));
 					result = StringUtils.replace(result, "{posterPhone}", CommonUtils.getStringValue(poster.getPhone()));
 				}
 				result = StringUtils.replace(result, "{jobCompany}", CommonUtils.getStringValue(jobApplication.getCompanyName()));
 				result = StringUtils.replace(result, "{jobTitle}", CommonUtils.getStringValue(jobApplication.getJobTitle()));
-				if(jobApplication.getCompatibility() != null) {
+				if (jobApplication.getCompatibility() != null) {
 					result = StringUtils.replace(result, "{compatibility}", jobApplication.getCompatibility().toString());
 				} else {
 					result = StringUtils.replace(result, "{compatibility}", "");
 				}
-				if(jobApplication.getMinExperience() != null && jobApplication.getMaxExperience() != null) {
+				if (jobApplication.getMinExperience() != null && jobApplication.getMaxExperience() != null) {
 					result = StringUtils.replace(result, "{jobExperience}", jobApplication.getMinExperience().toString() + " - " + jobApplication.getMaxExperience());
 				} else {
 					result = StringUtils.replace(result, "{jobExperience}", "");
 				}
 			}
+			if (StringUtils.isNotBlank(messageText)) {
+				result = StringUtils.replace(result, "{message}", messageText);
+			}
 			message.setContent(result, "text/html");
-			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(getEmails(mailchain)));
-			if(candidate.getResume() != null) {
+			if(attachCv) {
 				try {
-					result = StringUtils.replace(result, "{resume}", "Also, please find attached the Resume of the applicant.");
 					attachCv(message, candidate, result);
 				} catch (IOException e) {
-					e.printStackTrace();
+					LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 				}
-			} else {
-				result = StringUtils.replace(result, "{resume}", "");
 			}
+			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(getEmails(mailchain)));
 			return result;
 
 		} catch (FileNotFoundException e) {
@@ -194,7 +214,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
 			e.printStackTrace();
-		} 
+		}
 
 		return "";
 	}
@@ -205,7 +225,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 		}
 		StringBuilder builder = new StringBuilder();
 		for (Candidate user : users) {
-			if(StringUtils.isEmpty(user.getEmail())) {
+			if (StringUtils.isEmpty(user.getEmail())) {
 				continue;
 			}
 			builder.append(user.getEmail()).append(",");
@@ -213,26 +233,28 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 		return StringUtils.removeEnd(builder.toString(), ",");
 	}
 
-	
-
 	public void run() {
 		sendMail();
 	}
 
 	private String prepareActivationMailContent() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(ROOT_URL).append("#?").append(ACTIVATION_URL_VAR).append("=").append(candidate.getActivationCode()).
-		append("&").append(ACTIVATION_USER_VAR).append("=").append(candidate.getEmail());
+		builder.append(ROOT_URL).append("#?").append(ACTIVATION_URL_VAR).append("=").append(candidate.getActivationCode()).append("&").append(ACTIVATION_USER_VAR).append("=")
+				.append(candidate.getEmail());
 		return builder.toString();
 	}
 
 	private String readMailContent(Message message) throws FileNotFoundException, MessagingException {
 		String contentPath = "";
 		contentPath = "email/" + MAIL_TEMPLATES.get(type);
-		message.setSubject(MAIL_SUBJECTS.get(type));
+		if (StringUtils.equals(MAIL_TYPE_GENERIC, type) && StringUtils.isNotBlank(mailSubject)) {
+			message.setSubject(mailSubject);
+		} else {
+			message.setSubject(MAIL_SUBJECTS.get(type));
+		}
 		return CommonUtils.readFile(contentPath);
 	}
-	
+
 	private void attachCv(Message message, Candidate candidate, String result) throws MessagingException, IOException {
 		Multipart mp = new MimeMultipart();
 		BodyPart fileBody = new MimeBodyPart();
@@ -251,7 +273,6 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 		return candidate;
 	}
 
-
 	public void setCandidate(Candidate candidate) {
 		this.candidate = candidate;
 	}
@@ -259,7 +280,6 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 	public JobApplication getJobApplication() {
 		return jobApplication;
 	}
-
 
 	public void setJobApplication(JobApplication jobApplication) {
 		this.jobApplication = jobApplication;
@@ -277,6 +297,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			put(MAIL_TYPE_FORGOT_PWD, "forgot_password.html");
 			put(MAIL_TYPE_POSTER_REJECTED, "poster_rejected.html");
 			put(MAIL_TYPE_NEW_JOB_POC, "new_job_poc.html");
+			put(MAIL_TYPE_GENERIC, "generic_mail.html");
 		}
 	});
 
@@ -294,5 +315,5 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			put(MAIL_TYPE_NEW_JOB_POC, "Job posted for you!");
 		}
 	});
-	
+
 }

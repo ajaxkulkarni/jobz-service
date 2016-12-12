@@ -34,4 +34,10 @@ public class AdminDaoImpl {
 		return query.list();
 	}
 
+	public List<Candidates> getAllCandidates(Session session, String type) {
+		Query query = session.createQuery("from Candidates where type=:candidate_type order by ID DESC");
+		query.setString("candidate_type", type);
+		return query.list();
+	}
+
 }
