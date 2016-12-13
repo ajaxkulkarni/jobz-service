@@ -99,6 +99,25 @@ public class UserService implements JobzConstants {
 	}
 	
 	@POST
+	@Path("/resendActivation")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public JobServiceResponse resendActivation(JobServiceRequest request) {
+		LoggingUtil.logObject("Resend Request :", request);
+		JobServiceResponse response = initResponse();
+		try {
+			response.setResponseText(candidateBo.resendActivation(request.getRequestedBy()));
+			CommonUtils.checkForError(response);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(-999);
+			response.setResponseText(ERROR_IN_PROCESSING);
+		}
+		LoggingUtil.logObject("Resend Response :", response);
+		return response;
+	}
+	
+	@POST
 	@Path("/activateUser")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)

@@ -566,6 +566,32 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		}
 		return currentCandidate;
 	}
+
+	@Override
+	public String resendActivation(Candidate candidate) {
+		if (candidate == null || StringUtils.isEmpty(candidate.getEmail())) {
+			return null;
+		}
+		String result = RESPONSE_OK;
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
+			if(registeredCandidate == null) {
+				return null;
+			}
+			JobzMailUtil mailUtil = new JobzMailUtil(MAIL_TYPE_ACTIVATION);
+			mailUtil.setCandidate(DTBConverter.getCandidateBasic(registeredCandidate));
+			executor.execute(mailUtil);
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+			result = ERROR_IN_PROCESSING;
+		} finally {
+			CommonUtils.closeSession(session);
+		}
+		return result;
+	}
 	
 	
 

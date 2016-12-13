@@ -11,6 +11,7 @@ import com.rns.web.jobz.service.bo.domain.Qualification;
 public interface CandidateBo {
 
 	String registerCandidate(Candidate candidate);
+	String resendActivation(Candidate candidate);
 	Candidate activateCandidate(Candidate candidate);
 	String updateCandidate(Candidate candidate);
 	Candidate login(Candidate candidate);
