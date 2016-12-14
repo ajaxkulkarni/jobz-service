@@ -159,6 +159,9 @@ public class DTBConverter {
 			if (StringUtils.equals(currentCandidate.getEmail(), availableCandidates.getEmail())) {
 				continue;
 			}
+			if(application.getPoc() != null && StringUtils.equals(application.getPoc().getEmail(), availableCandidates.getEmail())) {
+				continue;
+			}
 			if (candidatePresent(application, availableCandidates)) {
 				continue;
 			}
@@ -305,7 +308,7 @@ public class DTBConverter {
 		if(StringUtils.isNotBlank(post.getPocEmail())) {
 			Candidate poc = new Candidate();
 			poc.setEmail(post.getPocEmail());
-			poc.setPhone(poc.getPhone());
+			poc.setPhone(post.getPocPhone());
 			application.setPoc(poc);
 		}
 		return application;

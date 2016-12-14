@@ -21,7 +21,7 @@ public interface JobzConstants {
 	String ERROR_INVALID_ACTIVATION_CODE = "Invalid activation code. Please try again.";
 	String ERROR_EMAIL_DOES_NOT_EXIST = "Email address does not exist!";
 	String ERROR_INVALID_FILE = "Invalid/No file selected";
-
+	String ERROR_UNSUBCRIBED_SERVICE = "This email has unsubcribed the service!";
 
 
 	String YES = "Y";
@@ -41,9 +41,12 @@ public interface JobzConstants {
     }});
 	
 	
-	String ROOT_URL = "http://www.talnote.com/activation.html";
+	String ROOT_URL_ACTIVATION = "http://www.talnote.com/activation.html";
+	String ROOT_URL_UNSUBSCRIBE = "http://www.talnote.com/unsubscribe.html";
 	String ACTIVATION_URL_VAR = "activationCode";
 	String ACTIVATION_USER_VAR = "activationUser";
+	String UNSUBSCRIBE_ID_VAR = "id";
+	String UNSUBSCRIBE_EMAIL_VAR = "email";
 	String INACTIVE = "I";
 	String ACTIVE = "A";
 	String NO = "N";

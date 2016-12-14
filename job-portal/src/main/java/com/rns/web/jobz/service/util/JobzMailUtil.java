@@ -101,7 +101,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 					if (jobApplication != null) {
 						jobApplication.setCompatibility(c.getCompatibility());
 					}
-					System.out.println("Considering :" + c.getEmail());
+					//System.out.println("Considering :" + c.getEmail());
 					prepareMailContent(message);
 					Transport.send(message);
 				}
@@ -193,6 +193,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 				} else {
 					result = StringUtils.replace(result, "{jobExperience}", "");
 				}
+				result = StringUtils.replace(result, "{unsubscribeLink}", prepareUnsubscribeMailContent());
 			}
 			if (StringUtils.isNotBlank(messageText)) {
 				result = StringUtils.replace(result, "{message}", messageText);
@@ -239,8 +240,18 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 
 	private String prepareActivationMailContent() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(ROOT_URL).append("#?").append(ACTIVATION_URL_VAR).append("=").append(candidate.getActivationCode()).append("&").append(ACTIVATION_USER_VAR).append("=")
+		builder.append(ROOT_URL_ACTIVATION).append("#?").append(ACTIVATION_URL_VAR).append("=").append(candidate.getActivationCode()).append("&").append(ACTIVATION_USER_VAR).append("=")
 				.append(candidate.getEmail());
+		return builder.toString();
+	}
+	
+	private String prepareUnsubscribeMailContent() {
+		if(jobApplication == null || jobApplication.getPostedBy() == null) {
+			return "";
+		}
+		StringBuilder builder = new StringBuilder();
+		builder.append(ROOT_URL_UNSUBSCRIBE).append("#?").append(UNSUBSCRIBE_ID_VAR).append("=").append(jobApplication.getId()).append("&").append(UNSUBSCRIBE_EMAIL_VAR).append("=")
+				.append(jobApplication.getPostedBy().getEmail());
 		return builder.toString();
 	}
 

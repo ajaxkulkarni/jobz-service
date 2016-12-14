@@ -343,6 +343,25 @@ public class UserService implements JobzConstants {
 
 	}
 	
+	@POST
+	@Path("/unsubscribe")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public JobServiceResponse unsubscribe(JobServiceRequest request) {
+		LoggingUtil.logObject("Unsubscribe Request :", request);
+		JobServiceResponse response = initResponse();
+		try {
+			response.setResponseText(candidateBo.unsubscribe(request.getRequestedBy()));
+			CommonUtils.checkForError(response);
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(-999);
+			response.setResponseText(ERROR_IN_PROCESSING);
+		}
+		LoggingUtil.logObject("Unsubscribe Response :", response);
+		return response;
+	}
+	
 	@GET
 	@Path("/download/{email}")
 	//@Consumes(MediaType.MULTIPART_FORM_DATA)

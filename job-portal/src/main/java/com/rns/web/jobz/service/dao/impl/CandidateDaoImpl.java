@@ -1,5 +1,6 @@
 package com.rns.web.jobz.service.dao.impl;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import com.rns.web.jobz.service.dao.domain.Candidates;
 import com.rns.web.jobz.service.dao.domain.Education;
 import com.rns.web.jobz.service.dao.domain.JobPost;
 import com.rns.web.jobz.service.dao.domain.Skills;
+import com.rns.web.jobz.service.dao.domain.Unsubscribers;
 import com.rns.web.jobz.service.util.JobzConstants;
 
 public class CandidateDaoImpl {
@@ -111,6 +113,27 @@ public class CandidateDaoImpl {
 		Query query = session.createQuery("from JobPost where pocEmail=:candidate_email order by ID DESC");
 		query.setString("candidate_email", candidateEmail);
 		return query.list();
+	}
+	
+	public Unsubscribers getUnsubscriber(String email, Session session) {
+		Query query = session.createQuery("from Unsubscribers where email=:candidate_email order by ID DESC");
+		query.setString("candidate_email", email);
+		List<Unsubscribers> unsubscribers = query.list();
+		if(CollectionUtils.isNotEmpty(unsubscribers)) {
+			return unsubscribers.get(0);
+		}
+		return null;
+	}
+	
+	public JobPost getPocJob(String candidateEmail, Integer id, Session session) {
+		Query query = session.createQuery("from JobPost where pocEmail=:candidate_email AND id=:job_id");
+		query.setString("candidate_email", candidateEmail);
+		query.setInteger("job_id", id);
+		List<JobPost> jobs = query.list();
+		if(CollectionUtils.isNotEmpty(jobs)) {
+			return jobs.get(0);
+		}
+		return null;
 	}
 	
 }

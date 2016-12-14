@@ -56,6 +56,7 @@
 				<value>com.rns.web.jobz.service.dao.domain.Education</value>
 				<value>com.rns.web.jobz.service.dao.domain.JobPost</value>
 				<value>com.rns.web.jobz.service.dao.domain.CandidateApplication</value>
+				<value>com.rns.web.jobz.service.dao.domain.Unsubscribers</value>
 			</list>
 		</property>
 		<property name="hibernateProperties">

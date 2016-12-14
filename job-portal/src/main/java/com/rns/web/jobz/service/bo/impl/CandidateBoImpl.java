@@ -30,6 +30,7 @@ import com.rns.web.jobz.service.dao.domain.Candidates;
 import com.rns.web.jobz.service.dao.domain.Education;
 import com.rns.web.jobz.service.dao.domain.JobPost;
 import com.rns.web.jobz.service.dao.domain.Skills;
+import com.rns.web.jobz.service.dao.domain.Unsubscribers;
 import com.rns.web.jobz.service.dao.impl.CandidateDaoImpl;
 import com.rns.web.jobz.service.util.BTDConverter;
 import com.rns.web.jobz.service.util.CommonUtils;
@@ -196,6 +197,10 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		try {
 			session = this.sessionFactory.openSession();
 			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			if(application.getPoc() != null && candidateDaoImpl.getUnsubscriber(application.getPoc().getEmail(), session) != null) {
+				CommonUtils.closeSession(session);
+				return ERROR_UNSUBCRIBED_SERVICE;
+			}
 			JobPost post = BTDConverter.getJobPost(application);
 			Candidates candidateByEmail = candidateDaoImpl.getCandidateByEmail(application.getPostedBy().getEmail(), session);
 			if (post != null && candidateByEmail != null) {
@@ -205,17 +210,18 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 				Transaction tx = session.beginTransaction();
 				session.persist(post);
 				tx.commit();
-				JobzMailUtil mailer = new JobzMailUtil(MAIL_TYPE_NEW_JOB);
 				JobApplication jobApplication = DTBConverter.getJobApplication(post);
-				mailer.setCandidates(DTBConverter.getMatchingCandidates(session, application.getPostedBy(), jobApplication));
-				mailer.setJobApplication(jobApplication);
-				executor.execute(mailer);
 				if(BTDConverter.isPoc(application)) {
 					JobzMailUtil pocAlert = new JobzMailUtil(MAIL_TYPE_NEW_JOB_POC);
 					application.setPostedBy(application.getPoc());
+					application.setId(jobApplication.getId());
 					pocAlert.setJobApplication(application);
 					executor.execute(pocAlert);
 				}
+				JobzMailUtil mailer = new JobzMailUtil(MAIL_TYPE_NEW_JOB);
+				mailer.setCandidates(DTBConverter.getMatchingCandidates(session, application.getPostedBy(), jobApplication));
+				mailer.setJobApplication(jobApplication);
+				executor.execute(mailer);
 			}
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
@@ -293,7 +299,9 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 						jobApplication.setPostedBy(jobApplication.getPoc());
 						jobApplication.setAttachCv(application.isAttachCv());
 					}
-					executor.execute(jobzMailUtil);
+					if(jobApplication.getPostedBy() != null && candidateDaoImpl.getUnsubscriber(jobApplication.getPostedBy().getEmail(), session) == null) {
+						executor.execute(jobzMailUtil);
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -455,11 +463,11 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
 			Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
 			if(registeredCandidate == null) {
-				session.close();
+				CommonUtils.closeSession(session);
 				return curCandidate;
 			}
 			else if(!StringUtils.equals(candidate.getActivationCode(), registeredCandidate.getActivationCode())) {
-				session.close();
+				CommonUtils.closeSession(session);
 				return curCandidate;
 			}
 			Transaction tx = session.beginTransaction();
@@ -578,12 +586,38 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			session = this.sessionFactory.openSession();
 			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
 			Candidates registeredCandidate = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
-			if(registeredCandidate == null) {
-				return null;
+			if(registeredCandidate != null) {
+				JobzMailUtil mailUtil = new JobzMailUtil(MAIL_TYPE_ACTIVATION);
+				mailUtil.setCandidate(DTBConverter.getCandidateBasic(registeredCandidate));
+				executor.execute(mailUtil);
 			}
-			JobzMailUtil mailUtil = new JobzMailUtil(MAIL_TYPE_ACTIVATION);
-			mailUtil.setCandidate(DTBConverter.getCandidateBasic(registeredCandidate));
-			executor.execute(mailUtil);
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+			result = ERROR_IN_PROCESSING;
+		} finally {
+			CommonUtils.closeSession(session);
+		}
+		return result;
+	}
+
+	@Override
+	public String unsubscribe(Candidate candidate) {
+		if(candidate == null || StringUtils.isBlank(candidate.getEmail()) || candidate.getId() == null) {
+			return ERROR_INCOMPLETE_DETAILS;
+		}
+		String result = RESPONSE_OK;
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			JobPost post = new CandidateDaoImpl().getPocJob(candidate.getEmail(), candidate.getId(), session);
+			if(post != null) {
+				Transaction tx = session.beginTransaction();
+				Unsubscribers unsubscribers = new Unsubscribers();
+				unsubscribers.setEmail(candidate.getEmail());
+				unsubscribers.setDate(new Date());
+				session.persist(unsubscribers);
+				tx.commit();
+			}
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 			result = ERROR_IN_PROCESSING;
