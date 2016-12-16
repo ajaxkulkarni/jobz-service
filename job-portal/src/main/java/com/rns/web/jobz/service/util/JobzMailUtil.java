@@ -15,6 +15,7 @@ import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
+import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -152,6 +153,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 				result = StringUtils.replace(result, "{code}", CommonUtils.getStringValue(candidate.getActivationCode()));
 				result = StringUtils.replace(result, "{designation}", CommonUtils.getStringValue((candidate.getDesignation())));
 				result = StringUtils.replace(result, "{company}", CommonUtils.getStringValue(candidate.getCompany()));
+				result = StringUtils.replace(result, "{skills}", CommonUtils.getSkills(candidate.getJobSkills()));
 				if (candidate.getExperience() != null) {
 					result = StringUtils.replace(result, "{experience}", candidate.getExperience().toString());
 				} else {
@@ -175,6 +177,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 				Candidate poster = jobApplication.getPostedBy();
 				if (Arrays.asList(POSTER_MAIL_LIST).contains(type)) {
 					mailchain.add(poster);
+					message.setRecipients(Message.RecipientType.BCC, InternetAddress.parse("talnoterns@gmail.com"));
 				}
 				if (poster != null) {
 					result = StringUtils.replace(result, "{posterName}", CommonUtils.getStringValue(poster.getName()));
@@ -193,6 +196,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 				} else {
 					result = StringUtils.replace(result, "{jobExperience}", "");
 				}
+				result = StringUtils.replace(result, "{skillsRequired}", CommonUtils.getSkills(jobApplication.getSkillsRequired()));
 				result = StringUtils.replace(result, "{unsubscribeLink}", prepareUnsubscribeMailContent());
 			}
 			if (StringUtils.isNotBlank(messageText)) {

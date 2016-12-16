@@ -5,13 +5,15 @@ import java.io.FileNotFoundException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 
-import com.rns.web.jobz.service.bo.domain.Candidate;
 import com.rns.web.jobz.service.bo.domain.JobServiceResponse;
+import com.rns.web.jobz.service.bo.domain.JobSkill;
 import com.rns.web.jobz.service.dao.domain.Candidates;
 
 public class CommonUtils {
@@ -69,6 +71,20 @@ public class CommonUtils {
 		if (!JobzConstants.RESPONSE_OK.equals(response.getResponseText())) {
 			response.setStatus(-111);
 		}
+	}
+	
+	public static String getSkills(List<JobSkill> list) {
+		if(CollectionUtils.isEmpty(list)) {
+			return "";
+		}
+		StringBuffer buffer = new StringBuffer();
+		for(JobSkill value: list) {
+			if(StringUtils.isEmpty(value.getName())) {
+				continue;
+			}
+			buffer.append(value.getName()).append(",");
+		}
+		return StringUtils.removeEnd(buffer.toString(), ",");
 	}
 	
 }
