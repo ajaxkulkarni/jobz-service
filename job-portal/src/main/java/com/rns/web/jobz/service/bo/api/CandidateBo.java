@@ -26,5 +26,6 @@ public interface CandidateBo {
 	String uploadResume(Candidate candidate);
 	Candidate downloadResume(Candidate candidate);
 	String unsubscribe(Candidate candidate);
+	JobApplication getJob(JobApplication applyJobRequested);
 }
 

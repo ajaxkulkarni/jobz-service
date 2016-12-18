@@ -260,6 +260,9 @@ public class DTBConverter {
 	}
 
 	public static Candidate getCandidateBasic(Candidates candidates) {
+		if(candidates == null) {
+			return null;
+		}
 		Candidate currentCandidate = new Candidate();
 		currentCandidate.setId(candidates.getId());
 		currentCandidate.setCompany(candidates.getCompany());
@@ -284,6 +287,9 @@ public class DTBConverter {
 	}
 
 	public static JobApplication getJobApplication(JobPost post) {
+		if(post == null) {
+			return null;
+		}
 		JobApplication application = new JobApplication();
 		application.setId(post.getId());
 		application.setCompanyName(post.getCompanyName());

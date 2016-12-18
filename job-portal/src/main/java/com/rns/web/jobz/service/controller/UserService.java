@@ -206,6 +206,25 @@ public class UserService implements JobzConstants {
 		LoggingUtil.logObject("Populate Response :", response);
 		return response;
 	}
+	
+	@POST
+	@Path("/getJob")
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public JobServiceResponse getJob(JobServiceRequest request) {
+		LoggingUtil.logObject("Get Job Request :", request);
+		JobServiceResponse response = initResponse();
+		try {
+			response.setJobRequested(candidateBo.getJob(request.getApplyJobRequested()));
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(-999);
+			response.setResponseText(ERROR_IN_PROCESSING);
+		}
+		LoggingUtil.logObject("Get job Response :", response);
+		return response;
+	}
 
 	@POST
 	@Path("/postJob")

@@ -196,6 +196,11 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 				} else {
 					result = StringUtils.replace(result, "{jobExperience}", "");
 				}
+				if (jobApplication.getId() != null) {
+					result = StringUtils.replace(result, "{jobId}", jobApplication.getId().toString());
+				} else {
+					result = StringUtils.replace(result, "{jobId}", "");
+				}
 				result = StringUtils.replace(result, "{skillsRequired}", CommonUtils.getSkills(jobApplication.getSkillsRequired()));
 				result = StringUtils.replace(result, "{unsubscribeLink}", prepareUnsubscribeMailContent());
 			}

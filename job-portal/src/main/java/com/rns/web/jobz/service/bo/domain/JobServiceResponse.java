@@ -10,6 +10,7 @@ public class JobServiceResponse {
 	private List<JobSkill> matchingJobSkills;
 	private List<Qualification> matchingEducations;
 	private AdminResponse adminResponse;
+	private JobApplication jobRequested;
 	
 	public Integer getStatus() {
 		return status;
@@ -46,6 +47,12 @@ public class JobServiceResponse {
 	}
 	public void setAdminResponse(AdminResponse adminResponse) {
 		this.adminResponse = adminResponse;
+	}
+	public JobApplication getJobRequested() {
+		return jobRequested;
+	}
+	public void setJobRequested(JobApplication jobRequested) {
+		this.jobRequested = jobRequested;
 	}
 
 }

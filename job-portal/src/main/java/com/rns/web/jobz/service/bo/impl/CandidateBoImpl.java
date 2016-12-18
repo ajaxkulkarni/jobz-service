@@ -326,6 +326,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			Candidates candidates = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
 			if(candidates != null) {
 				currentCandidate = DTBConverter.getCandidate(candidates, session);
+				currentCandidate.setActivationCode("");
 				if(candidates.getLastLogin() == null || !DateUtils.isSameDay(new Date(), candidates.getLastLogin())) {
 					Transaction tx = session.beginTransaction();
 					candidates.setLastLogin(new Date());
@@ -627,6 +628,32 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 		return result;
 	}
 	
-	
+	@Override
+	public JobApplication getJob(JobApplication applyJobRequested) {
+		if(applyJobRequested == null || applyJobRequested.getId() == null) {
+			return null;
+		}
+		JobApplication job = new JobApplication();
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			JobPost post = candidateDaoImpl.getJobApplication(applyJobRequested.getId(), session);
+			if(post != null) {
+				job = DTBConverter.getJobApplication(post);
+				if(applyJobRequested.getCurrentCandidate() != null && StringUtils.isNotEmpty(applyJobRequested.getCurrentCandidate().getEmail())) {
+					Candidate currCandidate = DTBConverter.getCandidateBasic(candidateDaoImpl.getCandidateByEmail(applyJobRequested.getCurrentCandidate().getEmail(), session));
+					if(currCandidate != null) {
+						job.setCompatibility(JobzUtils.calculateCompatibility(currCandidate, job));
+					}
+				}
+			}
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+		} finally {
+			CommonUtils.closeSession(session);
+		}
+		return job;
+	}
 
 }
