@@ -10,6 +10,7 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -46,7 +47,8 @@ public class JobPost {
 	private Integer sector;
 	private String pocEmail;
 	private String pocPhone;
-
+	private String mailSeen;
+	
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
 	@Column(name = "id", unique = true, nullable = false)
@@ -148,7 +150,7 @@ public class JobPost {
 		this.companyName = companyName;
 	}
 
-	@ManyToOne(cascade = CascadeType.MERGE)
+	@ManyToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "posted_by")
 	public Candidates getPostedBy() {
@@ -161,7 +163,7 @@ public class JobPost {
 	}
 	
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ManyToMany(cascade = {CascadeType.PERSIST})
+	@ManyToMany(cascade = {CascadeType.PERSIST}, fetch = FetchType.LAZY)
 	@JoinTable(name="job_post_skills", 
 				joinColumns={@JoinColumn(name="job_post_id")}, 
 				inverseJoinColumns={@JoinColumn(name="skill_id")})
@@ -174,7 +176,7 @@ public class JobPost {
 	}
 
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ManyToMany(cascade = {CascadeType.PERSIST})
+	@ManyToMany(cascade = {CascadeType.PERSIST}, fetch = FetchType.LAZY)
 	@JoinTable(name="job_post_education", 
 				joinColumns={@JoinColumn(name="job_post_id")}, 
 				inverseJoinColumns={@JoinColumn(name="education_id")})
@@ -187,7 +189,7 @@ public class JobPost {
 	}
 
 	@NotFound(action = NotFoundAction.IGNORE)
-	@OneToMany(mappedBy = "jobPost")
+	@OneToMany(mappedBy = "jobPost", fetch = FetchType.LAZY)
 	@OrderBy("id DESC")
 	public Set<CandidateApplication> getApplications() {
 		return applications;
@@ -229,6 +231,15 @@ public class JobPost {
 	}
 	public void setPocPhone(String pocPhone) {
 		this.pocPhone = pocPhone;
+	}
+
+	@Column(name = "mail_seen")
+	public String getMailSeen() {
+		return mailSeen;
+	}
+
+	public void setMailSeen(String mailSeen) {
+		this.mailSeen = mailSeen;
 	}
 	
 	

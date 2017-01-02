@@ -1,5 +1,6 @@
 package com.rns.web.jobz.service.controller;
 
+import java.io.File;
 import java.io.InputStream;
 
 import javax.ws.rs.Consumes;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import com.rns.web.jobz.service.bo.api.CandidateBo;
 import com.rns.web.jobz.service.bo.domain.Candidate;
+import com.rns.web.jobz.service.bo.domain.JobApplication;
 import com.rns.web.jobz.service.bo.domain.JobServiceRequest;
 import com.rns.web.jobz.service.bo.domain.JobServiceResponse;
 import com.rns.web.jobz.service.bo.domain.JobSkill;
@@ -382,17 +384,51 @@ public class UserService implements JobzConstants {
 	}
 	
 	@GET
-	@Path("/download/{email}")
+	@Path("/download/{email}/{jobId}/{poster}")
 	//@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@Produces(MediaType.MULTIPART_FORM_DATA)
-	public Response uploadFile(@PathParam("email") String email) {
+	public Response downloadFile(@PathParam("email") String email, @PathParam("jobId") Integer jobId, @PathParam("poster") String poster) {
 		LoggingUtil.logMessage("Download CV request for :" + email);
 		try {
 			Candidate candidate = new Candidate();
 			candidate.setEmail(email);
+			if(jobId != null) {
+				JobApplication application = new JobApplication();
+				application.setId(jobId);
+				Candidate postedBy = new Candidate();
+				postedBy.setEmail(poster);
+				application.setPostedBy(postedBy);
+				candidate.setApplication(application);
+			}
 			Candidate currentCandidate = candidateBo.downloadResume(candidate);
 			ResponseBuilder response = Response.ok(currentCandidate.getResume());
 			response.header("Content-Disposition","attachment; filename=\"" + currentCandidate.getFilePath() + "\"");  
+			return response.build();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		//LoggingUtil.logObject("Download resume Response :", response);
+		return null;
+
+	}
+	
+	@GET
+	@Path("/getLogo/{jobId}")
+	//@Consumes(MediaType.MULTIPART_FORM_DATA)
+	@Produces(MediaType.MULTIPART_FORM_DATA)
+	public Response downloadLogo(@PathParam("jobId") Integer jobId) {
+		LoggingUtil.logMessage("Download Logo request for :" + jobId);
+		try {
+			
+			if(jobId != null) {
+				JobApplication application = new JobApplication();
+				application.setId(jobId);
+				candidateBo.updateJobMailSeen(application);
+			}
+			File logo = CommonUtils.getFile("logo_black.png");
+			ResponseBuilder response = Response.ok(logo);
+			response.header("Content-Disposition","attachment; filename=logo.png");  
 			return response.build();
 
 		} catch (Exception e) {

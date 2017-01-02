@@ -15,7 +15,6 @@ import java.util.Properties;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.activation.FileDataSource;
-import javax.mail.Address;
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -104,10 +103,14 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 					}
 					//System.out.println("Considering :" + c.getEmail());
 					prepareMailContent(message);
+					message.setHeader("Disposition-Notification-To", "AjinkyaChandrashekhar.Kulkarni@cognizant.com");
+					message.addHeader("Disposition-Notification-To", "AjinkyaChandrashekhar.Kulkarni@cognizant.com");
 					Transport.send(message);
 				}
 			} else {
 				prepareMailContent(message);
+				message.setHeader("Disposition-Notification-To", "AjinkyaChandrashekhar.Kulkarni@cognizant.com");
+				message.addHeader("Disposition-Notification-To", "AjinkyaChandrashekhar.Kulkarni@cognizant.com");
 				Transport.send(message);
 				if (candidate != null && StringUtils.isNotEmpty(candidate.getEmail())) {
 					LoggingUtil.logMessage("Mail " + type + " sent to :" + candidate.getEmail());
@@ -125,11 +128,12 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 		Properties props = new Properties();
 
 		props.put("mail.smtp.auth", MAIL_AUTH);
-		props.put("mail.smtp.socketFactory.port", "465");
-		props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+		props.put("mail.smtp.socketFactory.port", "465"); //PROD
+		props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory"); //PROD
 		// props.put("mail.smtp.starttls.enable", "true");
 		props.put("mail.smtp.host", MAIL_HOST);
 		props.put("mail.smtp.port", MAIL_PORT);
+		
 
 		Session session = Session.getInstance(props, new javax.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {
@@ -167,8 +171,9 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 					mailchain.add(candidate);
 				}
 				if (candidate.getResume() != null && jobApplication != null && jobApplication.isAttachCv()) {
-					result = StringUtils.replace(result, "{resume}", "Also, please find attached the Resume of the applicant.");
-					attachCv = true;
+					/*result = StringUtils.replace(result, "{resume}", "Also, please find attached the Resume of the applicant.");
+					attachCv = true;*/
+					result = StringUtils.replace(result, "{resume}", "<a href='" + ROOT_URL + "download/" + candidate.getEmail() + "/" + jobApplication.getId() +"/" + jobApplication.getPostedBy().getEmail() + "' ><button type='button' class='myButton'>Download Resume</button></a>");
 				} else {
 					result = StringUtils.replace(result, "{resume}", "");
 				}
@@ -203,18 +208,19 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 				}
 				result = StringUtils.replace(result, "{skillsRequired}", CommonUtils.getSkills(jobApplication.getSkillsRequired()));
 				result = StringUtils.replace(result, "{unsubscribeLink}", prepareUnsubscribeMailContent());
+				/*result = StringUtils.replace(result, "{logoPath}", prepareLogoLink());*/
 			}
 			if (StringUtils.isNotBlank(messageText)) {
 				result = StringUtils.replace(result, "{message}", messageText);
 			}
 			message.setContent(result, "text/html");
-			if(attachCv) {
+			/*if(attachCv) {
 				try {
 					attachCv(message, candidate, result);
 				} catch (IOException e) {
 					LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
 				}
-			}
+			}*/
 			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(getEmails(mailchain)));
 			return result;
 
@@ -227,6 +233,12 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 		}
 
 		return "";
+	}
+
+	private String prepareLogoLink() {
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(ROOT_URL).append("getLogo/").append(jobApplication.getId());
+		return buffer.toString();
 	}
 
 	private String getEmails(List<Candidate> users) {
@@ -318,6 +330,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			put(MAIL_TYPE_POSTER_REJECTED, "poster_rejected.html");
 			put(MAIL_TYPE_NEW_JOB_POC, "new_job_poc.html");
 			put(MAIL_TYPE_GENERIC, "generic_mail.html");
+			put(MAIL_TYPE_RESUME_DOWNLOAD, "resume_download.html");
 		}
 	});
 
@@ -333,6 +346,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			put(MAIL_TYPE_FORGOT_PWD, "Talnote Forgot password");
 			put(MAIL_TYPE_POSTER_REJECTED, "Job Application Rejected");
 			put(MAIL_TYPE_NEW_JOB_POC, "Job posted for you!");
+			put(MAIL_TYPE_RESUME_DOWNLOAD, "Your resume was downloaded!");
 		}
 	});
 

@@ -26,7 +26,8 @@ public class CandidateApplication {
 	private Date appliedDate;
 	private Candidates candidates;
 	private JobPost jobPost;
-	
+	private String resumeDownloaded;
+	private String resumeSent;
 	
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
@@ -80,6 +81,22 @@ public class CandidateApplication {
 	}
 	public void setJobPost(JobPost jobPost) {
 		this.jobPost = jobPost;
+	}
+	
+	@Column(name = "resume_download")
+	public String getResumeDownloaded() {
+		return resumeDownloaded;
+	}
+	public void setResumeDownloaded(String resumeDownloaded) {
+		this.resumeDownloaded = resumeDownloaded;
+	}
+	
+	@Column(name = "resume_sent")
+	public String getResumeSent() {
+		return resumeSent;
+	}
+	public void setResumeSent(String resumeSent) {
+		this.resumeSent = resumeSent;
 	}
 	
 	

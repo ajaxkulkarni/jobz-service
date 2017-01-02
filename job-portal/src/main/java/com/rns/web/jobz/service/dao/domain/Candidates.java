@@ -10,12 +10,12 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
@@ -145,7 +145,7 @@ public class Candidates {
 	}
 	
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ManyToMany(cascade = {CascadeType.ALL})
+	@ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
 	@JoinTable(name="candidate_skills", 
 				joinColumns={@JoinColumn(name="candidate_id")}, 
 				inverseJoinColumns={@JoinColumn(name="skill_id")})
@@ -155,7 +155,7 @@ public class Candidates {
 
 	
 	@NotFound(action = NotFoundAction.IGNORE)
-	@ManyToMany(cascade = {CascadeType.ALL})
+	@ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.LAZY)
 	@JoinTable(name="candidate_education", 
 				joinColumns={@JoinColumn(name="candidate_id")}, 
 				inverseJoinColumns={@JoinColumn(name="education_id")})
@@ -168,7 +168,7 @@ public class Candidates {
 	}
 
 	@NotFound(action = NotFoundAction.IGNORE)
-	@OneToMany(mappedBy = "postedBy")
+	@OneToMany(mappedBy = "postedBy", fetch = FetchType.LAZY)
 	@OrderBy("id DESC")
 	public Set<JobPost> getPosts() {
 		return posts;
@@ -179,7 +179,7 @@ public class Candidates {
 	}
 
 	@NotFound(action = NotFoundAction.IGNORE)
-	@OneToMany(mappedBy = "candidates")
+	@OneToMany(mappedBy = "candidates", fetch = FetchType.LAZY)
 	@OrderBy("id DESC")
 	public Set<CandidateApplication> getApplications() {
 		return applications;

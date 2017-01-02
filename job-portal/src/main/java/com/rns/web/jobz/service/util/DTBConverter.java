@@ -8,7 +8,6 @@ import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Session;
 
 import com.rns.web.jobz.service.bo.domain.Candidate;
@@ -28,12 +27,12 @@ public class DTBConverter {
 	public static Candidate getCandidate(Candidates candidates, Session session) {
 		Candidate currentCandidate = getCandidateBasic(candidates);
 
-		getPostedJobs(candidates, session, currentCandidate);
-
-		getAppliedJobs(candidates, currentCandidate);
-
-		getAvailableJobs(currentCandidate, session, candidates);
-
+		if(StringUtils.equals(JobzConstants.USER_TYPE_POSTER, currentCandidate.getType())) {
+			getPostedJobs(candidates, session, currentCandidate);
+		} else {
+			getAppliedJobs(candidates, currentCandidate);
+			getAvailableJobs(currentCandidate, session, candidates);
+		}
 		return currentCandidate;
 	}
 
@@ -80,6 +79,10 @@ public class DTBConverter {
 		jobApplication.setPostedBy(getCandidateBasic(application.getJobPost().getPostedBy()));
 		jobApplication.setAppliedDate(application.getAppliedDate());
 		jobApplication.setInterestShownBySeeker(application.getInterestShownBySeeker());
+		if(StringUtils.equals(JobzConstants.YES, application.getResumeSent())) {
+			jobApplication.setAttachCv(true);
+		}
+		jobApplication.setResumeDownloaded(application.getResumeDownloaded());
 		return jobApplication;
 	}
 
@@ -317,6 +320,7 @@ public class DTBConverter {
 			poc.setPhone(post.getPocPhone());
 			application.setPoc(poc);
 		}
+		application.setMailSeen(post.getMailSeen());
 		return application;
 	}
 

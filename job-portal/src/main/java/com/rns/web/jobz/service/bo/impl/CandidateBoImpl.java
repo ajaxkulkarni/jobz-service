@@ -261,6 +261,10 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 					candidateApplication.setInterestShownByPoster(application.getInterestShownByPoster());
 				}
 				
+				if(application.isAttachCv()) {
+					candidateApplication.setResumeSent(YES);
+				}
+				
 				Transaction tx = session.beginTransaction();
 				session.persist(candidateApplication);
 				tx.commit();
@@ -562,7 +566,8 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			session = this.sessionFactory.openSession();
 			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
 			Candidates candidates = candidateDaoImpl.getCandidateByEmail(candidate.getEmail(), session);
-			if(candidates != null && StringUtils.isNotEmpty(candidates.getFilePath())) {
+			if (candidates != null && StringUtils.isNotEmpty(candidates.getFilePath())) {
+				posterRequested(candidate, session, candidates);
 				File file = new File(candidates.getFilePath());
 				currentCandidate = DTBConverter.getCandidateBasic(candidates);
 				currentCandidate.setResume(file);
@@ -574,6 +579,36 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			CommonUtils.closeSession(session);
 		}
 		return currentCandidate;
+	}
+
+	private void posterRequested(Candidate candidate, Session session, Candidates candidates) {
+		JobApplication application = candidate.getApplication();
+		if(application == null || application.getId() == null || 
+				application.getPostedBy() == null || StringUtils.isBlank(application.getPostedBy().getEmail())) {
+			return;
+		}
+		CandidateApplication candidateApplication = new CandidateDaoImpl().getPosterApplication(application.getId(), application.getPostedBy().getEmail(), session);
+		if(candidateApplication == null) {
+			candidateApplication = new CandidateDaoImpl().getPocApplication(application.getId(), application.getPostedBy().getEmail(), session);
+		}
+		if(candidateApplication == null) {
+			return;
+		}
+		if(candidateApplication.getCandidates() == null) {
+			return;
+		}
+		Transaction tx = session.beginTransaction();
+		candidateApplication.setInterestShownByPoster(YES);
+		candidateApplication.setResumeDownloaded(YES);
+		JobzMailUtil mailUtil = new JobzMailUtil(MAIL_TYPE_RESUME_DOWNLOAD);
+		mailUtil.setCandidate(DTBConverter.getCandidateBasic(candidates));
+		JobApplication jobApplication = DTBConverter.getJobApplication(candidateApplication);
+		if(BTDConverter.isPoc(jobApplication)) {
+			jobApplication.setPostedBy(jobApplication.getPoc());
+		}
+		mailUtil.setJobApplication(jobApplication);
+		executor.execute(mailUtil);
+		tx.commit();
 	}
 
 	@Override
@@ -654,6 +689,31 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			CommonUtils.closeSession(session);
 		}
 		return job;
+	}
+	
+	@Override
+	public String updateJobMailSeen(JobApplication application) {
+		if (application == null || application.getId() == null) {
+			return ERROR_INCOMPLETE_DETAILS;
+		}
+		String result = RESPONSE_OK;
+		Session session = null;
+		try {
+			session = this.sessionFactory.openSession();
+			Transaction tx = session.beginTransaction();
+			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
+			JobPost post = candidateDaoImpl.getJobApplication(application.getId(), session);
+			if (post != null) {
+				post.setMailSeen(YES);
+			}
+			tx.commit();
+		} catch (Exception e) {
+			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
+			result = e.getMessage();
+		} finally {
+			CommonUtils.closeSession(session);
+		}
+		return result;
 	}
 
 }

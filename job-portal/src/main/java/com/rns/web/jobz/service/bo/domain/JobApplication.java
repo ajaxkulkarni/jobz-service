@@ -39,6 +39,8 @@ public class JobApplication {
 	private boolean isExpired;
 	private Candidate poc;
 	private boolean attachCv;
+	private String resumeDownloaded;
+	private String mailSeen;
 	
 	public Integer getId() {
 		return id;
@@ -238,6 +240,18 @@ public class JobApplication {
 	}
 	public void setAttachCv(boolean attachCv) {
 		this.attachCv = attachCv;
+	}
+	public String getResumeDownloaded() {
+		return resumeDownloaded;
+	}
+	public void setResumeDownloaded(String resumeDownloaded) {
+		this.resumeDownloaded = resumeDownloaded;
+	}
+	public String getMailSeen() {
+		return mailSeen;
+	}
+	public void setMailSeen(String mailSeen) {
+		this.mailSeen = mailSeen;
 	}
 	
 	

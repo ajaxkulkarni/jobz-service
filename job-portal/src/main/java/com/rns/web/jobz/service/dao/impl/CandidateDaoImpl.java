@@ -91,6 +91,28 @@ public class CandidateDaoImpl {
 		}
 		return applications.get(0);
 	}
+	
+	public CandidateApplication getPosterApplication(Integer id, String email, Session session) {
+		Query query = session.createQuery("from CandidateApplication where jobPost.id=:post_id AND jobPost.postedBy.email=:email_id");
+		query.setInteger("post_id", id);
+		query.setString("email_id", email);
+		List<CandidateApplication> applications = query.list();
+		if (CollectionUtils.isEmpty(applications)) {
+			return null;
+		}
+		return applications.get(0);
+	}
+	
+	public CandidateApplication getPocApplication(Integer id, String email, Session session) {
+		Query query = session.createQuery("from CandidateApplication where jobPost.id=:post_id AND jobPost.pocEmail=:email_id");
+		query.setInteger("post_id", id);
+		query.setString("email_id", email);
+		List<CandidateApplication> applications = query.list();
+		if (CollectionUtils.isEmpty(applications)) {
+			return null;
+		}
+		return applications.get(0);
+	}
 
 	public List<Candidates> getAllCandidates(Session session) {
 		Query query = session.createQuery("from Candidates where type IS NULL OR type!=:poster AND (status=:active OR status IS NULL)");
