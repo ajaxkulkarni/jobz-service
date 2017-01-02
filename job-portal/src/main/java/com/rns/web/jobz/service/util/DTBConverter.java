@@ -320,7 +320,7 @@ public class DTBConverter {
 			poc.setPhone(post.getPocPhone());
 			application.setPoc(poc);
 		}
-		application.setMailSeen(post.getMailSeen());
+		//application.setMailSeen(post.getMailSeen());
 		return application;
 	}
 

@@ -47,7 +47,7 @@ public class JobPost {
 	private Integer sector;
 	private String pocEmail;
 	private String pocPhone;
-	private String mailSeen;
+	//private String mailSeen;
 	
 	@Id
 	@GeneratedValue(strategy = IDENTITY)
@@ -233,14 +233,14 @@ public class JobPost {
 		this.pocPhone = pocPhone;
 	}
 
-	@Column(name = "mail_seen")
+	/*@Column(name = "mail_seen")
 	public String getMailSeen() {
 		return mailSeen;
 	}
 
 	public void setMailSeen(String mailSeen) {
 		this.mailSeen = mailSeen;
-	}
+	}*/
 	
 	
 }

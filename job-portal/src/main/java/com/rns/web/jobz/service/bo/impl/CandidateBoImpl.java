@@ -704,7 +704,7 @@ public class CandidateBoImpl implements CandidateBo, JobzConstants {
 			CandidateDaoImpl candidateDaoImpl = new CandidateDaoImpl();
 			JobPost post = candidateDaoImpl.getJobApplication(application.getId(), session);
 			if (post != null) {
-				post.setMailSeen(YES);
+				//TODO post.setMailSeen(YES);
 			}
 			tx.commit();
 		} catch (Exception e) {
