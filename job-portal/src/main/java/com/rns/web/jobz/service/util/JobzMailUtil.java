@@ -128,8 +128,8 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 		Properties props = new Properties();
 
 		props.put("mail.smtp.auth", MAIL_AUTH);
-		props.put("mail.smtp.socketFactory.port", "465"); //PROD
-		props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory"); //PROD
+		//props.put("mail.smtp.socketFactory.port", "465"); //PROD
+		//props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory"); //PROD
 		// props.put("mail.smtp.starttls.enable", "true");
 		props.put("mail.smtp.host", MAIL_HOST);
 		props.put("mail.smtp.port", MAIL_PORT);
@@ -209,6 +209,9 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 				result = StringUtils.replace(result, "{skillsRequired}", CommonUtils.getSkills(jobApplication.getSkillsRequired()));
 				result = StringUtils.replace(result, "{unsubscribeLink}", prepareUnsubscribeMailContent());
 				/*result = StringUtils.replace(result, "{logoPath}", prepareLogoLink());*/
+				if(MAIL_TYPE_NEW_JOB.equals(type)) {
+					message.setSubject(jobApplication.getJobTitle() + " required at " + jobApplication.getCompanyName());
+				}
 			}
 			if (StringUtils.isNotBlank(messageText)) {
 				result = StringUtils.replace(result, "{message}", messageText);
@@ -342,7 +345,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 			put(MAIL_TYPE_SEEKER_APPLY, "You have a new candidate application");
 			put(MAIL_TYPE_GOT_SEEKER_CONTACT, "Congrats! You've got a contact!");
 			put(MAIL_TYPE_GOT_POSTER_CONTACT, "Congrats! You've got a contact!");
-			put(MAIL_TYPE_NEW_JOB, "New Job application for you!");
+			put(MAIL_TYPE_NEW_JOB, "{designation} required at {company}");
 			put(MAIL_TYPE_FORGOT_PWD, "Talnote Forgot password");
 			put(MAIL_TYPE_POSTER_REJECTED, "Job Application Rejected");
 			put(MAIL_TYPE_NEW_JOB_POC, "Job posted for you!");
