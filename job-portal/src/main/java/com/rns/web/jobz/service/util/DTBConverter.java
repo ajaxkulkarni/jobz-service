@@ -278,7 +278,7 @@ public class DTBConverter {
 		currentCandidate.setPassword(candidates.getPassword());
 		currentCandidate.setPhone(candidates.getPhone());
 		currentCandidate.setJobSkills(getJobSkills(candidates.getSkills()));
-		currentCandidate.setEducations(getQualifications(candidates.getEducation()));
+		//TODO: currentCandidate.setEducations(getQualifications(candidates.getEducation()));
 		currentCandidate.setType(candidates.getType());
 		currentCandidate.setSector(getSector(candidates.getSector()));
 		currentCandidate.setStatus(candidates.getStatus());

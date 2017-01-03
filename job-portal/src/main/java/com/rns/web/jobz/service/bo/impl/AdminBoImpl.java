@@ -101,14 +101,18 @@ public class AdminBoImpl implements AdminBo {
 		List<Candidate> candidates = new ArrayList<Candidate>();
 		Session session = null;
 		try {
+			LoggingUtil.logMessage("Opening session for all Users request ..");
 			session = this.sessionFactory.openSession();
+			LoggingUtil.logMessage("New session for all Users request ..");
 			List<Candidates> candidatesList = new AdminDaoImpl().getAllCandidates(session);
+			LoggingUtil.logMessage("Got candidates for all Users request ..");
 			if(CollectionUtils.isNotEmpty(candidatesList)) {
 				for(Candidates c: candidatesList) {
 					Candidate candidate = DTBConverter.getCandidateBasic(c);
 					candidates.add(candidate);
 				}
 			}
+			LoggingUtil.logMessage("Converted All candidates for all Users request ..");
 			
 		} catch (Exception e) {
 			LoggingUtil.logMessage(ExceptionUtils.getStackTrace(e));
