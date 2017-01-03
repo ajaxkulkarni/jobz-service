@@ -96,7 +96,7 @@ public class AdminService implements JobzConstants {
 	@Consumes(MediaType.APPLICATION_JSON)
 	public JobServiceResponse getAllusers(JobServiceRequest request) {
 		//System.out.println("Here in search skill!");
-		LoggingUtil.logObject("Admin all users Request :", request);
+		LoggingUtil.logMessage("Admin all users Requested");
 		JobServiceResponse response = initResponse();
 		try {
 			AdminResponse admin = new AdminResponse();
@@ -107,7 +107,7 @@ public class AdminService implements JobzConstants {
 			response.setStatus(-999);
 			response.setResponseText(ERROR_IN_PROCESSING);
 		}
-		LoggingUtil.logObject("Admin all users Response :", response);
+		LoggingUtil.logMessage("Admin all users Complete!");
 		return response;
 	}
 	
