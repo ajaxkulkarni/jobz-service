@@ -36,6 +36,7 @@ import com.rns.web.jobz.service.bo.domain.JobApplication;
 
 public class JobzMailUtil implements Runnable, JobzConstants {
 
+	private static final String READ_RECEIPT_MAIL = "talnoterns@gmail.com";
 	private static final String MAIL_ID = "contact@talnote.com";
 	// private static final String MAIL_ID = "support@talnote.com";
 	// private static final String MAIL_ID = "ajinkyashiva@gmail.com";
@@ -103,14 +104,10 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 					}
 					//System.out.println("Considering :" + c.getEmail());
 					prepareMailContent(message);
-					message.setHeader("Disposition-Notification-To", "AjinkyaChandrashekhar.Kulkarni@cognizant.com");
-					message.addHeader("Disposition-Notification-To", "AjinkyaChandrashekhar.Kulkarni@cognizant.com");
 					Transport.send(message);
 				}
 			} else {
 				prepareMailContent(message);
-				message.setHeader("Disposition-Notification-To", "AjinkyaChandrashekhar.Kulkarni@cognizant.com");
-				message.addHeader("Disposition-Notification-To", "AjinkyaChandrashekhar.Kulkarni@cognizant.com");
 				Transport.send(message);
 				if (candidate != null && StringUtils.isNotEmpty(candidate.getEmail())) {
 					LoggingUtil.logMessage("Mail " + type + " sent to :" + candidate.getEmail());
@@ -128,8 +125,8 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 		Properties props = new Properties();
 
 		props.put("mail.smtp.auth", MAIL_AUTH);
-		//props.put("mail.smtp.socketFactory.port", "465"); //PROD
-		//props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory"); //PROD
+		props.put("mail.smtp.socketFactory.port", "465"); //PROD
+		props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory"); //PROD
 		// props.put("mail.smtp.starttls.enable", "true");
 		props.put("mail.smtp.host", MAIL_HOST);
 		props.put("mail.smtp.port", MAIL_PORT);
@@ -211,6 +208,10 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 				/*result = StringUtils.replace(result, "{logoPath}", prepareLogoLink());*/
 				if(MAIL_TYPE_NEW_JOB.equals(type)) {
 					message.setSubject(jobApplication.getJobTitle() + " required at " + jobApplication.getCompanyName());
+				}
+				if(MAIL_TYPE_NEW_JOB_POC.equals(type)) {
+					message.setHeader("Disposition-Notification-To", READ_RECEIPT_MAIL);
+					message.addHeader("Disposition-Notification-To", READ_RECEIPT_MAIL);
 				}
 			}
 			if (StringUtils.isNotBlank(messageText)) {

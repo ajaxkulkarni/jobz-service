@@ -12,7 +12,7 @@ public interface JobzConstants {
 	
 	//Prod
 	String ROOT_PATH = "/home/talnote/Uploads/Resumes/";
-	String ROOT_URL = "http://115.124.124.220:8080/jobz/service";
+	String ROOT_URL = "https://tiffeat.com:8443/jobz/service";
 	
 	String RESPONSE_OK = "OK";
 	String ERROR_INVALID_LOGIN_DETAILS = "Invalid login details!";
