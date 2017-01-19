@@ -170,7 +170,7 @@ public class JobzMailUtil implements Runnable, JobzConstants {
 				if (candidate.getResume() != null && jobApplication != null && jobApplication.isAttachCv()) {
 					/*result = StringUtils.replace(result, "{resume}", "Also, please find attached the Resume of the applicant.");
 					attachCv = true;*/
-					result = StringUtils.replace(result, "{resume}", "<a href='" + ROOT_URL + "download/" + candidate.getEmail() + "/" + jobApplication.getId() +"/" + jobApplication.getPostedBy().getEmail() + "' ><button type='button' class='myButton'>Download Resume</button></a>");
+					result = StringUtils.replace(result, "{resume}", "<a href='" + ROOT_URL + "/download/" + candidate.getEmail() + "/" + jobApplication.getId() +"/" + jobApplication.getPostedBy().getEmail() + "' ><button type='button' class='myButton'>Download Resume</button></a>");
 				} else {
 					result = StringUtils.replace(result, "{resume}", "");
 				}
